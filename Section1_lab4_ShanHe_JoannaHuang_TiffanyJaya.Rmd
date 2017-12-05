@@ -15,6 +15,7 @@ TODO: A brief introduction
 
 TODO: An initial exploratory analysis. Detect any anomalies, including missing values, top-coded or bottom- coded variables, etc.
 
+
 ```{r}
 library(car) # lm
 library(ggplot2) # ggplot
@@ -27,12 +28,12 @@ library(tidyr) # gather
 
 ```{r}
 data <- read.csv("crime.csv")
-str(data)
 summary(data)
 ```
 
 sample size n = 90
 num of var = 26
+Summary ranges for variables look reasonable except for prbarr (‘probability’ of arrest) and prbconv (‘probability’ of conviction) where there appears to be some outliers that have a probability greater than 1.0.
 
 ```{r}
 colSums(sapply(data, is.na))
@@ -46,15 +47,44 @@ ggplot(gather(plot.data), aes(value)) +
        facet_wrap(~key, scales="free") + 
        geom_histogram()
 ```
+# Observations
+- All observations were recorded for the year of 1987. 
+- $urban$, $central$, $west$ are categorical variables.
+- Most wages variables (wcon, wtrd, wfir, wser, wmfg, wfed, wsta) appear to be slightly positively skewed which may be due to less people getting paid towards the higher end. 
+- wtuc, wloc appear to be normally distributed.
+- prbarr, prbconv appear to be positively skewed while prbpris is more negatively skewed.
+- avgsen appears to be positively skewed.
+- crmrte, density, polpc, prbconv: The histogram indicates that these variables have positive skews. Given the variables have a meaningful zero-point, we can take the log for a more normal distribution.
+- Question: what is mix? 
 
-Dependent variable: $crmrte$ has a slight positive skew -> perform a log transform
-Categorical variables: $urban$, $central$, $west$
-Only one year: 1987
+```{r}
+plot.data <- na.omit(log(data[, sapply(data, is.numeric)]))
+ggplot(gather(plot.data), aes(value)) + 
+       facet_wrap(~key, scales="free") + 
+       geom_histogram()
+```
+# Observations after taking logs:
+It looks like the log transformation of variables cmrte, mix, prbconv, wfed, wfir, wmfg, and wsta have made the distributions quite normal. This will help ensure the errors of the model are normal.
 
-Wages: wcon, wtuc, wtrd, wfir, wser, wmfg, wfed, wsta, wloc
-Probabilities and Averages: prbarr, prbconv, prbpris, avgsen
+# Proposed Model
+Based on the exploratory data analysis and general intution about the potential determinants of crime, an initial proposed model specification and coefficient expectation are:
 
-Question: what is mix? 
+- Sum of all wages: Summing the wage variables across sectors may identify whether income inequality between counties may explain the difference in crime rates. Initial thoughts are that sum of wages (higher incomes) lead to lower crime rates, so a linear relationship between sum of wages and crimes committed per person is expected with a negative coefficient.
+
+- log(prbarr) Probability of arrest: There is the possibility that the probability of arrest is positively correlated with crime rate, as higher numbers of arrest can increase the number of crimes recorded.
+
+- tax revenue per capita (taxpc): Lack of government-funded resources can take the form of a lack of educational opportunities or employment options, thus leading to rise in crime rates.
+
+Model 1:
+$log(crmrte) = B_0 + B_1(allwages) + B_2log(prbarr) + B_3(taxrev)+u$
+
+
+# Model Building Process
+
+TODO: A model building process, supported by exploratory analysis. Your EDA should be interspersed with, and support, your modeling decisions. In particular, you should use exploratory techniques to address
+* What transformations to apply to variables and what new variables should be created.
+* What variables should be included in each model
+* Whether model assumptions are met
 
 Potential independent variables: polpc (police per capita), density (people per sq mile), taxpc (tax revenue per capita), pctmin80 (percentage minority in 1980), pctymle (percentage young male)
 
@@ -70,16 +100,6 @@ sum(data$central == 1)
 # number of west
 sum(data$west == 1)
 ```
-
-
-# Model Building Process
-
-TODO: A model building process, supported by exploratory analysis. Your EDA should be interspersed with, and support, your modeling decisions. In particular, you should use exploratory techniques to address
-* What transformations to apply to variables and what new variables should be created.
-* What variables should be included in each model
-* Whether model assumptions are met
-
-
 
 
 
