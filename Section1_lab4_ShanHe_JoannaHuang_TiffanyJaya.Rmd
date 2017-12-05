@@ -5,10 +5,99 @@ date: "18 December 2017"
 output: pdf_document
 ---
 
+TODO: As this is a policy exercise, you should do your best to address the campaign’s questions from a causal perspective. At the same time, you should clearly explain the limitations of your analysis, and provide discussion around whether your estimates suffer from endogeneity bias.
+
 # Introduction 
 
-```{r}
+TODO: A brief introduction
 
+# Exploratory Data Analysis
+
+TODO: An initial exploratory analysis. Detect any anomalies, including missing values, top-coded or bottom- coded variables, etc.
+
+```{r}
+library(car) # lm
+library(ggplot2) # ggplot
+library(lmtest) # bptest
+library(plm) # vcovHC
+library(sandwich) 
+library(stargazer) # stargazer
+library(tidyr) # gather
 ```
 
+```{r}
+data <- read.csv("crime.csv")
+str(data)
+summary(data)
+```
+
+sample size n = 90
+num of var = 26
+
+```{r}
+colSums(sapply(data, is.na))
+```
+
+There are no missing values. 
+
+```{r}
+plot.data <- na.omit(data[, sapply(data, is.numeric)])
+ggplot(gather(plot.data), aes(value)) + 
+       facet_wrap(~key, scales="free") + 
+       geom_histogram()
+```
+
+Dependent variable: $crmrte$ has a slight positive skew -> perform a log transform
+Categorical variables: $urban$, $central$, $west$
+Only one year: 1987
+
+Wages: wcon, wtuc, wtrd, wfir, wser, wmfg, wfed, wsta, wloc
+Probabilities and Averages: prbarr, prbconv, prbpris, avgsen
+
+Question: what is mix? 
+
+Potential independent variables: polpc (police per capita), density (people per sq mile), taxpc (tax revenue per capita), pctmin80 (percentage minority in 1980), pctymle (percentage young male)
+
+```{r}
+pairs(crmrte ~ polpc + density + taxpc + pctmin80 + pctymle, data=data)
+```
+
+```{r}
+# number of urban
+sum(data$urban == 1)
+# number of central
+sum(data$central == 1)
+# number of west
+sum(data$west == 1)
+```
+
+
+# Model Building Process
+
+TODO: A model building process, supported by exploratory analysis. Your EDA should be interspersed with, and support, your modeling decisions. In particular, you should use exploratory techniques to address
+* What transformations to apply to variables and what new variables should be created.
+* What variables should be included in each model
+* Whether model assumptions are met
+
+
+
+
+
+# Model Specifications
+
+TODO: 
+* One model with only the explanatory variables of key interest (possibly transformed, as determined by your EDA), and no other covariates.
+* One model that includes key explanatory variables and only covariates that you believe increase the accuracy of your results without introducing bias (for example, you should not include outcome variables that will absorb some of the causal effect you are interested in). This model should strike a balance between accuracy and parsimony and reflect your best understanding of the determinants of crime.
+* One model that includes the previous covariates, and most, if not all, other covariates. A key purpose of this model is to demonstrate the robustness of your results to model specification.
+
+For your first model, a detailed assessment of the 6 CLM assumptions. For additional models, you should check all assumptions, but only highlight major differences from your first model in your report.
+
+A well-formatted regression table summarizing your model results. Make sure that standard errors presented in this table are valid. Also, be sure to comment on both statistical and practical significance.
+
+# Causality
+
+TODO: A detailed discussion of causality. In particular, include a discussion of what variables are not included in your analysis and the likely direction of omitted variable bias. Highlight any coefficients you find that appear to have the wrong sign from a causal perspective, and explain why this is the case.
+
 # Conclusion
+
+TODO: A brief conclusion with a few high-level takeaways.
