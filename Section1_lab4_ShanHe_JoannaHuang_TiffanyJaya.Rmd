@@ -134,6 +134,14 @@ mapply(function(var, var.name) {
 }, subset(data, select=independents), independents)
 ```
 
+```{r}
+# repeat of above but checking out all the wages
+mapply(function(var, var.name) {
+  boxplot(var ~ urban, data=data, names=c("non-urban", "urban"), main=var.name)
+}, subset.data, names(subset.data))
+```
+
+
 In urban areas, there is higher
 
 * crime rates
@@ -143,6 +151,7 @@ In urban areas, there is higher
 * tax revenue per capita
 * percentage of minority (slightly higher but not much)
 * percentage of young male (slightly higher but not much)
+* wages tend to be higher overall
 
 In urban areas, there is lower
 
@@ -165,6 +174,18 @@ mapply(function(central.var, west.var, var.name) {
 }, subset.central.data, subset.west.data, independents)
 ```
 
+```{r}
+# repeat of above but checking out all the wages
+central.data <- data[data$central == 1, ]
+subset.central.data <- subset(central.data, select=names(subset.data))
+west.data <- data[data$west == 1, ]
+subset.west.data <- subset(west.data, select=names(subset.data))
+mapply(function(central.var, west.var, var.name) {
+  boxplot(central.var, west.var, names=c("central", "west"), main=var.name)
+}, subset.central.data, subset.west.data, names(subset.data))
+```
+
+
 Comparing central vs west, 
 
 central has higher
@@ -174,6 +195,7 @@ central has higher
 * tax revenue per capita
 * percentage of minority
 * percentage of young male
+* wages in general are higher except for wtuc
 
 west has higher
 
@@ -186,6 +208,16 @@ central and west are about the same
 * probability of prison sentence
 * police per capita
 * face to face confrontation (central has slightly higher)
+
+```{r}
+# potential independent variables
+# density, taxpc, pctmin80, pctymle, avgsen, wages
+# already verified that these variables are not correlated to each other
+```
+
+
+
+
 
 # Observations
 - All observations were recorded for the year of 1987. 
