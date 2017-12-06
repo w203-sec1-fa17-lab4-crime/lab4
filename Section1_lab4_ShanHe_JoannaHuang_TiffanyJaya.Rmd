@@ -126,7 +126,66 @@ boxplot(as.vector(urban.central.data[c(16:24)]), main="compare all wages\nin urb
 # not worth it because it's only one dataset
 ```
 
+```{r out.width="20%", fig.align="center", fig.show="hold"}
+# in urban area, is there higher ...?
+independents <- c("crmrte", "prbarr", "prbconv", "prbpris", "avgsen", "polpc", "density", "taxpc", "pctmin80", "mix", "pctymle")
+mapply(function(var, var.name) {
+  boxplot(var ~ urban, data=data, names=c("non-urban", "urban"), main=var.name)
+}, subset(data, select=independents), independents)
+```
 
+In urban areas, there is higher
+
+* crime rates
+* average sentence
+* police per capita
+* density
+* tax revenue per capita
+* percentage of minority (slightly higher but not much)
+* percentage of young male (slightly higher but not much)
+
+In urban areas, there is lower
+
+* probability of arrest
+* probability of conviction
+* face to face confrontation (slightly lower but not much)
+
+In urban areas, there is about the same
+
+* probability of prison sentence
+
+```{r out.width="20%", fig.align="center", fig.show="hold"}
+# comparing central and west, is there higher ...?
+central.data <- data[data$central == 1, ]
+subset.central.data <- subset(central.data, select=independents)
+west.data <- data[data$west == 1, ]
+subset.west.data <- subset(west.data, select=independents)
+mapply(function(central.var, west.var, var.name) {
+  boxplot(central.var, west.var, names=c("central", "west"), main=var.name)
+}, subset.central.data, subset.west.data, independents)
+```
+
+Comparing central vs west, 
+
+central has higher
+
+* crime rate
+* density 
+* tax revenue per capita
+* percentage of minority
+* percentage of young male
+
+west has higher
+
+* average sentence
+
+central and west are about the same
+
+* probability of arrest
+* probabilitiy of conviction
+* probability of prison sentence
+* police per capita
+* face to face confrontation (central has slightly higher)
 
 # Observations
 - All observations were recorded for the year of 1987. 
