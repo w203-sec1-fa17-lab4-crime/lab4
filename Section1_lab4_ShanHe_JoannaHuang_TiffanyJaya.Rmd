@@ -39,8 +39,6 @@ nrow(data)
 ncol(data)
 ```
 
-Summary ranges for variables look reasonable except for prbarr (‘probability’ of arrest) and prbconv (‘probability’ of conviction) where there appears to be some outliers that have a probability greater than 1.0.
-
 ```{r}
 # number of prbarr where probability is greater than 1
 sum(data$prbarr > 1)
@@ -62,11 +60,71 @@ ggplot(gather(plot.data), aes(value)) +
 ```
 
 ```{r}
+# just list outliers for variables that are non-categorical
+subset.data <- data[!(names(data) %in% c("X", "county", "year", "central", "urban", "west"))]
 
+# list all outliers
+list_all_outliers <- function (var) {
+  outliers <- sort(boxplot.stats(var)$out)
+  return(paste(length(outliers), ": ", paste(outliers, collapse=", ")))
+}
+lapply(subset.data, list_all_outliers)
 ```
 
+Glaring outliers:
+1. Probability > 1 for prbarr and prbconv
+2. Outlier 2177 in wser which happens to be in central instead of urban (weird)
 
+```{r}
+# number of urban
+sum(data$urban == 1)
+# number of central
+sum(data$central == 1)
+# number of west
+sum(data$west == 1)
+```
 
+```{r}
+# determine if a county can have multiple categorical label: urban, central, west
+urban.county <- data[data$urban == 1, ]$county
+central.county <- data[data$central == 1, ]$county
+west.county <- data[data$west == 1, ]$county
+# can a county be labeled as both urban and central?
+uc.county <- c(urban.county, central.county)
+uc.county[duplicated(uc.county)]
+# can a county be labeled as both urban and west?
+uw.county <- c(urban.county, west.county)
+uw.county[duplicated(uw.county)]
+# I have verified that there is no county labeled as both central and west
+# counties that have more than one categorical label
+all.county <- c(urban.county, central.county, west.county)
+all.county[duplicated(all.county)]
+```
+
+```{r out.width="49%", fig.align="center", fig.show="hold"}
+# compare all the wages
+boxplot(as.vector(data[c(16:24)]), main="compare all wages")
+# compare all wages in central 
+central.data <- data[data$central == 1, ]
+boxplot(as.vector(central.data[c(16:24)]), main="compare all wages\nin central")
+```
+
+```{r out.width="30%", fig.align="center", fig.show="hold"}
+# compare all wages in urban 
+urban.data <- data[data$urban == 1, ]
+boxplot(as.vector(urban.data[c(16:24)]), main="compare all wages\nin urban")
+# compare all wages in central with outlier removed
+central.data[central.data$wser == 2177.06811523438, ]$wser <- mean(central.data$wser)
+boxplot(as.vector(central.data[c(16:24)]), main="compare all wages\nin central")
+# compare all wages in west
+west.data <- data[data$west == 1, ]
+boxplot(as.vector(west.data[c(16:24)]), main="compare all wages\nin west")
+# compare all wages in urban and central
+urban.central.data <- data[data$urban == 1 & data$central == 1, ]
+boxplot(as.vector(urban.central.data[c(16:24)]), main="compare all wages\nin urban central")
+# compare all wages in urban and west
+# not worth it because it's only one dataset
+```
 
 
 
@@ -108,23 +166,6 @@ TODO: A model building process, supported by exploratory analysis. Your EDA shou
 * What transformations to apply to variables and what new variables should be created.
 * What variables should be included in each model
 * Whether model assumptions are met
-
-Potential independent variables: polpc (police per capita), density (people per sq mile), taxpc (tax revenue per capita), pctmin80 (percentage minority in 1980), pctymle (percentage young male)
-
-```{r}
-pairs(crmrte ~ polpc + density + taxpc + pctmin80 + pctymle, data=data)
-```
-
-```{r}
-# number of urban
-sum(data$urban == 1)
-# number of central
-sum(data$central == 1)
-# number of west
-sum(data$west == 1)
-```
-
-
 
 # Model Specifications
 
