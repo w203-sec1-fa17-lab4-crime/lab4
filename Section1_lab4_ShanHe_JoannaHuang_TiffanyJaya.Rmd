@@ -210,8 +210,28 @@ central and west are about the same
 * face to face confrontation (central has slightly higher)
 
 ```{r}
+# potential dependent variable: crime rate
+hist(data$crmrte)
+hist(log(data$crmrte))
 # potential independent variables
-# density, taxpc, pctmin80, pctymle, avgsen, wages
+# 1. density
+hist(data$density)
+hist(log(data$density))
+# 2. taxpc
+hist(data$taxpc)
+hist(log(data$taxpc))
+# log didn't quite change much because of one outlier
+# 3. pctmin80
+hist(data$pctmin80)
+hist(log(data$pctmin80))
+# better leave variable as is because applying a log skewed the distribution
+# 4. pctymle
+hist(data$pctymle)
+hist(log(data$pctymle))
+# log didn't quite change much because of one outlier
+# 5. avgsen
+hist(data$avgsen)
+hist(log(data$avgsen))
 # already verified that these variables are not correlated to each other
 ```
 
@@ -235,10 +255,10 @@ ggplot(gather(plot.log.data), aes(value)) +
        facet_wrap(~key, scales="free") + 
        geom_histogram()
 ```
-# Observations after taking logs:
+*Observations after taking logs:*
 It looks like the log transformation of variables cmrte, mix, prbconv, wfed, wfir, wmfg, and wsta have made the distributions quite normal. This will help ensure the errors of the model are normal.
 
-# Proposed Model
+*Proposed Model*
 Based on the exploratory data analysis and general intution about the potential determinants of crime, an initial proposed model specification and coefficient expectation are:
 
 - Sum of all wages: Summing the wage variables across sectors may identify whether income inequality between counties may explain the difference in crime rates. Initial thoughts are that sum of wages (higher incomes) lead to lower crime rates, so a linear relationship between sum of wages and crimes committed per person is expected with a negative coefficient.
@@ -248,8 +268,7 @@ Based on the exploratory data analysis and general intution about the potential 
 - tax revenue per capita (taxpc): Lack of government-funded resources can take the form of a lack of educational opportunities or employment options, thus leading to rise in crime rates.
 
 Model 1:
-$log(crmrte) = B_0 + B_1(allwages) + B_2log(prbarr) + B_3(taxrev)+u$
-
+$log(crmrte) = \beta_0 + \beta_1(allwages) + \beta_2log(prbarr) + \beta_3(taxrev) + u$
 
 # Model Building Process
 
@@ -258,16 +277,370 @@ TODO: A model building process, supported by exploratory analysis. Your EDA shou
 * What variables should be included in each model
 * Whether model assumptions are met
 
+$density
+[1] "8 :  3.93455100059509, 4.38875865936279, 4.8347339630127, 5.12442398071289, 5.6744966506958, 6.28648662567139, 6.42718458175659, 8.82765197753906"
+
+$taxpc
+[1] "6 :  56.8621063232422, 61.1525115966797, 67.6796340942383, 67.8479766845703, 75.6724319458008, 119.761451721191"
+
 # Model Specifications
 
+## Model 1
 TODO: 
 * One model with only the explanatory variables of key interest (possibly transformed, as determined by your EDA), and no other covariates.
-* One model that includes key explanatory variables and only covariates that you believe increase the accuracy of your results without introducing bias (for example, you should not include outcome variables that will absorb some of the causal effect you are interested in). This model should strike a balance between accuracy and parsimony and reflect your best understanding of the determinants of crime.
-* One model that includes the previous covariates, and most, if not all, other covariates. A key purpose of this model is to demonstrate the robustness of your results to model specification.
 
+$log(crmrte) = \beta_0 + \beta_1 \cdot log(density) + \beta_2 \cdot (taxpc) + u$
+
+```{r}
+m1 <- lm(log(crmrte) ~ log(density) + taxpc, data=data)
+```
+
+TODO: 
 For your first model, a detailed assessment of the 6 CLM assumptions. For additional models, you should check all assumptions, but only highlight major differences from your first model in your report.
 
-A well-formatted regression table summarizing your model results. Make sure that standard errors presented in this table are valid. Also, be sure to comment on both statistical and practical significance.
+### CLM 1 - A linear model
+
+The model is specified such that the dependent variable is a linear function of the explanatory variables. 
+Is the assumption valid? *Yes*
+
+*Response*: No response required.
+
+### CLM 2 - Random Sampling
+
+TODO
+
+### CLM 3 - Multicollinearity
+
+```{r}
+# show correlation
+data$log.density <- log(data$density)
+cor(data.matrix(subset(data, select=c("density", "log.density", "taxpc"))))
+# show vif
+vif(m1)
+```
+
+The two explanatory variables (log.density and taxpc) are not perfectly correlated and the VIFs are low (less than 4), so there is no perfect multicollinearity of the independent variables. 
+
+Is the assumption valid? *Yes*
+
+*Response*: No response required.
+
+### CLM 4 - Zero-Conditional Mean
+
+```{r}
+plot(m1, which=c(1, 5))
+```
+
+```{r}
+# exogenous check
+cov(log(data$density), m1$residuals)
+cov(data$taxpc, m1$residuals)
+```
+
+The covariances of the two independent variables with the residuals are very close to zero indicating they are likely exogenous. 
+
+There is a data point with a large Cook's distance. 
+
+Is the assumption valid?
+
+*Response*:
+
+### CLM 5 - Homoscedasticity
+
+```{r}
+# spreadLevelPlot(m1)
+plot(m1, which=3)
+```
+
+```{r}
+bptest(m1)
+```
+not significant p-value for Breusch-Pagan test -> assumption of homoscedasticity met
+
+```{r}
+ncvTest(m1)
+```
+significant p-value for Score Test -> assumption of homoscedasticity met
+
+Is the assumption valid? *Yes*
+
+*Response*:
+
+### CLM 6 - Normality of residuals
+
+```{r}
+# normality of standard residuals
+standard <- rstandard(m1)
+hist(standard, main="Histogram of standard resiudals", freq=FALSE)
+curve(dnorm(x, mean=0, sd=sd(standard)), col="red", lwd=2, add=TRUE)
+```
+
+```{r}
+# normality of studentized residuals
+student <- rstudent(m1)
+hist(student, main="Histogram of studentized resiudals", freq=FALSE)
+curve(dnorm(x, mean=0, sd=sd(student)), col="red", lwd=2, add=TRUE)
+```
+
+```{r}
+# QQ plot standard residuals
+qqPlot(standard, distribution="norm", pch=20, main="QQ-Plot standard residuals")
+qqline(standard, col="red", lwd=2)
+```
+
+```{r}
+# QQ plot studentized residuals
+qqPlot(student, distribution="norm", pch=20, main="QQ-Plot studentized residuals")
+qqline(student, col="red", lwd=2)
+```
+
+
+The histograms in particular appear to be fairly normally distributed, while the Q-Q plot doesn’t deviate significantly from normality either, so overall the residuals appear to be fairly normal. Notably the log transformation of views has helped to produce normal
+errors.
+
+Is the assumption valid? *Yes*
+
+Response: *No response required.*
+
+TODO:
+* One model that includes key explanatory variables and only covariates that you believe increase the accuracy of your results without introducing bias (for example, you should not include outcome variables that will absorb some of the causal effect you are interested in). This model should strike a balance between accuracy and parsimony and reflect your best understanding of the determinants of crime.
+
+```{r}
+m2 <- lm(log(crmrte) ~ log(density) + taxpc + urban, data=data)
+```
+
+### CLM 1 - A linear model
+
+The model is specified such that the dependent variable is a linear function of the explanatory variables. 
+Is the assumption valid? *Yes*
+
+*Response*: No response required.
+
+### CLM 2 - Random Sampling
+
+TODO
+
+### CLM 3 - Multicollinearity
+
+```{r}
+# show correlation
+data$log.density <- log(data$density)
+cor(data.matrix(subset(data, select=c("density", "log.density", "taxpc", "urban"))))
+# show vif
+vif(m2)
+```
+
+The two explanatory variables (log.density and taxpc) are not perfectly correlated and the VIFs are low (less than 4), so there is no perfect multicollinearity of the independent variables. 
+
+Is the assumption valid? *Yes*
+
+*Response*: No response required.
+
+### CLM 4 - Zero-Conditional Mean
+
+```{r}
+plot(m2, which=c(1, 5))
+```
+
+```{r}
+# exogenous check
+cov(log(data$density), m2$residuals)
+cov(data$taxpc, m2$residuals)
+
+# TODO: figure out what to do with covariate
+cov(data$urban, m2$residuals)
+```
+
+The covariances of the two independent variables with the residuals are very close to zero indicating they are likely exogenous. 
+
+There is a data point with a large Cook's distance. 
+
+Is the assumption valid?
+
+*Response*:
+
+### CLM 5 - Homoscedasticity
+
+```{r}
+# spreadLevelPlot(m1)
+plot(m2, which=3)
+```
+
+```{r}
+bptest(m2)
+```
+not significant p-value for Breusch-Pagan test -> assumption of homoscedasticity met
+
+```{r}
+ncvTest(m2)
+```
+significant p-value for Score Test -> assumption of homoscedasticity met
+
+Is the assumption valid? *Yes*
+
+*Response*:
+
+### CLM 6 - Normality of residuals
+
+```{r}
+# normality of standard residuals
+standard <- rstandard(m2)
+hist(standard, main="Histogram of standard resiudals", freq=FALSE)
+curve(dnorm(x, mean=0, sd=sd(standard)), col="red", lwd=2, add=TRUE)
+```
+
+```{r}
+# normality of studentized residuals
+student <- rstudent(m2)
+hist(student, main="Histogram of studentized resiudals", freq=FALSE)
+curve(dnorm(x, mean=0, sd=sd(student)), col="red", lwd=2, add=TRUE)
+```
+
+```{r}
+# QQ plot standard residuals
+qqPlot(standard, distribution="norm", pch=20, main="QQ-Plot standard residuals")
+qqline(standard, col="red", lwd=2)
+```
+
+```{r}
+# QQ plot studentized residuals
+qqPlot(student, distribution="norm", pch=20, main="QQ-Plot studentized residuals")
+qqline(student, col="red", lwd=2)
+```
+
+The histograms in particular appear to be fairly normally distributed, while the Q-Q plot doesn’t deviate significantly from normality either, so overall the residuals appear to be fairly normal. Notably the log transformation of views has helped to produce normal
+errors.
+
+Is the assumption valid? *Yes*
+
+Response: *No response required.*
+
+
+TODO: 
+* One model that includes the previous covariates, and most, if not all, other covariates. A key purpose of this model is to demonstrate the robustness of your results to model specification.
+
+```{r}
+m3 <- lm(log(crmrte) ~ log(density) + taxpc + urban + central + west, data=data)
+```
+
+### CLM 1 - A linear model
+
+The model is specified such that the dependent variable is a linear function of the explanatory variables. 
+Is the assumption valid? *Yes*
+
+*Response*: No response required.
+
+### CLM 2 - Random Sampling
+
+TODO
+
+### CLM 3 - Multicollinearity
+
+```{r}
+# show correlation
+data$log.density <- log(data$density)
+cor(data.matrix(subset(data, select=c("density", "log.density", "taxpc", "urban"))))
+# show vif
+vif(m2)
+```
+
+The two explanatory variables (log.density and taxpc) are not perfectly correlated and the VIFs are low (less than 4), so there is no perfect multicollinearity of the independent variables. 
+
+Is the assumption valid? *Yes*
+
+*Response*: No response required.
+
+### CLM 4 - Zero-Conditional Mean
+
+```{r}
+plot(m2, which=c(1, 5))
+```
+
+```{r}
+# exogenous check
+cov(log(data$density), m2$residuals)
+cov(data$taxpc, m2$residuals)
+
+# TODO: figure out what to do with covariate
+cov(data$urban, m2$residuals)
+```
+
+The covariances of the two independent variables with the residuals are very close to zero indicating they are likely exogenous. 
+
+There is a data point with a large Cook's distance. 
+
+Is the assumption valid?
+
+*Response*:
+
+### CLM 5 - Homoscedasticity
+
+```{r}
+# spreadLevelPlot(m1)
+plot(m2, which=3)
+```
+
+```{r}
+bptest(m2)
+```
+not significant p-value for Breusch-Pagan test -> assumption of homoscedasticity met
+
+```{r}
+ncvTest(m2)
+```
+significant p-value for Score Test -> assumption of homoscedasticity met
+
+Is the assumption valid? *Yes*
+
+*Response*:
+
+### CLM 6 - Normality of residuals
+
+```{r}
+# normality of standard residuals
+standard <- rstandard(m2)
+hist(standard, main="Histogram of standard resiudals", freq=FALSE)
+curve(dnorm(x, mean=0, sd=sd(standard)), col="red", lwd=2, add=TRUE)
+```
+
+```{r}
+# normality of studentized residuals
+student <- rstudent(m2)
+hist(student, main="Histogram of studentized resiudals", freq=FALSE)
+curve(dnorm(x, mean=0, sd=sd(student)), col="red", lwd=2, add=TRUE)
+```
+
+```{r}
+# QQ plot standard residuals
+qqPlot(standard, distribution="norm", pch=20, main="QQ-Plot standard residuals")
+qqline(standard, col="red", lwd=2)
+```
+
+```{r}
+# QQ plot studentized residuals
+qqPlot(student, distribution="norm", pch=20, main="QQ-Plot studentized residuals")
+qqline(student, col="red", lwd=2)
+```
+
+The histograms in particular appear to be fairly normally distributed, while the Q-Q plot doesn’t deviate significantly from normality either, so overall the residuals appear to be fairly normal. Notably the log transformation of views has helped to produce normal
+errors.
+
+Is the assumption valid? *Yes*
+
+Response: *No response required.*
+
+# Model Results
+
+TODO: A well-formatted regression table summarizing your model results. Make sure that standard errors presented in this table are valid. Also, be sure to comment on both statistical and practical significance.
+
+```{r}
+se.m1 <- coef(summary(m1))[, "Std. Error"]
+se.m2 <- coef(summary(m2))[, "Std. Error"]
+se.m3 <- coef(summary(m3))[, "Std. Error"]
+stargazer(m1, m2, m3, se=list(se.m1, se.m2, se.m3), omit.stat=c("f", "ser"), 
+          star.cutoffs=c(0.05, 0.01, 0.001),
+          type="latex", title="Linear Models Predicting Crime Rates")
+```
 
 # Causality
 
