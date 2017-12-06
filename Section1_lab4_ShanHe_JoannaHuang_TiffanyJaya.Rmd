@@ -28,38 +28,61 @@ library(tidyr) # gather
 
 ```{r}
 data <- read.csv("crime.csv")
+str(data)
 summary(data)
 ```
 
-sample size n = 90
-num of var = 26
+```{r}
+# sample size n = 90
+nrow(data)
+# number of variables = 26
+ncol(data)
+```
+
 Summary ranges for variables look reasonable except for prbarr (‘probability’ of arrest) and prbconv (‘probability’ of conviction) where there appears to be some outliers that have a probability greater than 1.0.
 
 ```{r}
+# number of prbarr where probability is greater than 1
+sum(data$prbarr > 1)
+# number of prbconv where probability is greater than 1
+sum(data$prbconv > 1)
+```
+
+```{r}
+# verify number of missing values = 0
 colSums(sapply(data, is.na))
 ```
 
-There are no missing values. 
-
 ```{r}
-plot.data <- na.omit(data[, sapply(data, is.numeric)])
+# plot every variable except x, county, year
+plot.data <- data[!(names(data) %in% c("X", "county", "year"))]
 ggplot(gather(plot.data), aes(value)) + 
        facet_wrap(~key, scales="free") + 
        geom_histogram()
 ```
+
+```{r}
+
+```
+
+
+
+
+
+
 # Observations
 - All observations were recorded for the year of 1987. 
 - $urban$, $central$, $west$ are categorical variables.
-- Most wages variables (wcon, wtrd, wfir, wser, wmfg, wfed, wsta) appear to be slightly positively skewed which may be due to less people getting paid towards the higher end. 
+- Most wages variables (wcon, wfed, wfir, wmfg, wser, wsta, wtrd) have a positively skewed distribution which may be due to few number people getting paid above the average. 
 - wtuc, wloc appear to be normally distributed.
 - prbarr, prbconv appear to be positively skewed while prbpris is more negatively skewed.
 - avgsen appears to be positively skewed.
 - crmrte, density, polpc, prbconv: The histogram indicates that these variables have positive skews. Given the variables have a meaningful zero-point, we can take the log for a more normal distribution.
-- Question: what is mix? 
 
 ```{r}
-plot.data <- na.omit(log(data[, sapply(data, is.numeric)]))
-ggplot(gather(plot.data), aes(value)) + 
+# taking the log of the data excluding x, county, year and categorical variables
+plot.log.data <- log(data[!(names(data) %in% c("X", "county", "year", "urban", "central", "west"))])
+ggplot(gather(plot.log.data), aes(value)) + 
        facet_wrap(~key, scales="free") + 
        geom_histogram()
 ```
