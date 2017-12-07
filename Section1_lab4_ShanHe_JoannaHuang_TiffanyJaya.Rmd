@@ -101,6 +101,10 @@ sum(data$west == 1)
 all.county <- c(urban.county, central.county, west.county)
 all.county[duplicated(all.county)]
 ```
+Shan: this part didn't work for me. Here is another way to check:
+```{r}
+unique(cbind(data$urban,data$central,data$west))
+```
 
 ```{r out.width="20%", fig.align="center", fig.show="hold"}
 # in urban area, is there higher ...?
@@ -187,6 +191,12 @@ central and west are about the same
 * face to face confrontation (central has slightly higher)
 
 # Model Variable Exploration
+
+```{r}
+# covariance matrix of variables
+cor(data[!(names(data) %in% c("X", "county", "year", "urban", "central", "west"))])
+```
+
 ```{r}
 # potential dependent variable: crime rate
 hist(data$crmrte)
