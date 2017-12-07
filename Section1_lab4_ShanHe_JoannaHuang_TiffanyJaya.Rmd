@@ -193,7 +193,7 @@ central and west are about the same
 # Model Variable Exploration
 
 ```{r}
-# covariance matrix of variables
+# corelation matrix of variables
 cor(data[!(names(data) %in% c("X", "county", "year", "urban", "central", "west"))])
 ```
 
