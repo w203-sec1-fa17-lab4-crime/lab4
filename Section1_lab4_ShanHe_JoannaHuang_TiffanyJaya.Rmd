@@ -28,7 +28,6 @@ library(tidyr) # gather
 
 ```{r}
 data <- read.csv("crime.csv")
-str(data)
 summary(data)
 ```
 
@@ -37,13 +36,6 @@ summary(data)
 nrow(data)
 # number of variables = 26
 ncol(data)
-```
-
-```{r}
-# number of prbarr where probability is greater than 1
-sum(data$prbarr > 1)
-# number of prbconv where probability is greater than 1
-sum(data$prbconv > 1)
 ```
 
 ```{r}
@@ -58,6 +50,25 @@ ggplot(gather(plot.data), aes(value)) +
        facet_wrap(~key, scales="free") + 
        geom_histogram()
 ```
+# Observations
+- All observations were recorded for the year of 1987. 
+- $urban$, $central$, $west$ are categorical variables.
+- Most wages variables (wcon, wfed, wfir, wmfg, wser, wsta, wtrd) have a positively skewed distribution which may be due to few number people getting paid above the average. 
+- wtuc, wloc appear to be normally distributed.
+- prbarr, prbconv appear to be positively skewed while prbpris is more negatively skewed.
+- avgsen appears to be positively skewed.
+- crmrte, density, polpc, prbconv: The histogram indicates that these variables have positive skews. Given the variables have a meaningful zero-point, we can take the log for a more normal distribution.
+
+```{r}
+# taking the log of the data excluding x, county, year and categorical variables
+plot.log.data <- log(data[!(names(data) %in% c("X", "county", "year", "urban", "central", "west"))])
+ggplot(gather(plot.log.data), aes(value)) + 
+       facet_wrap(~key, scales="free") + 
+       geom_histogram()
+```
+
+*Observations after taking logs:*
+It looks like the log transformation of variables cmrte, mix, prbconv, wfed, wfir, wmfg, and wsta have made the distributions quite normal. This will help ensure the errors of the model are normal.
 
 ```{r}
 # just list outliers for variables that are non-categorical
@@ -86,44 +97,9 @@ sum(data$west == 1)
 
 ```{r}
 # determine if a county can have multiple categorical label: urban, central, west
-urban.county <- data[data$urban == 1, ]$county
-central.county <- data[data$central == 1, ]$county
-west.county <- data[data$west == 1, ]$county
-# can a county be labeled as both urban and central?
-uc.county <- c(urban.county, central.county)
-uc.county[duplicated(uc.county)]
-# can a county be labeled as both urban and west?
-uw.county <- c(urban.county, west.county)
-uw.county[duplicated(uw.county)]
-# I have verified that there is no county labeled as both central and west
-# counties that have more than one categorical label
+# 5 are both urban and central, 1 is urban and west, total of 6 labeled with more than one categorical label
 all.county <- c(urban.county, central.county, west.county)
 all.county[duplicated(all.county)]
-```
-
-```{r out.width="49%", fig.align="center", fig.show="hold"}
-# compare all the wages
-boxplot(as.vector(data[c(16:24)]), main="compare all wages")
-# compare all wages in central 
-central.data <- data[data$central == 1, ]
-boxplot(as.vector(central.data[c(16:24)]), main="compare all wages\nin central")
-```
-
-```{r out.width="30%", fig.align="center", fig.show="hold"}
-# compare all wages in urban 
-urban.data <- data[data$urban == 1, ]
-boxplot(as.vector(urban.data[c(16:24)]), main="compare all wages\nin urban")
-# compare all wages in central with outlier removed
-central.data[central.data$wser == 2177.06811523438, ]$wser <- mean(central.data$wser)
-boxplot(as.vector(central.data[c(16:24)]), main="compare all wages\nin central")
-# compare all wages in west
-west.data <- data[data$west == 1, ]
-boxplot(as.vector(west.data[c(16:24)]), main="compare all wages\nin west")
-# compare all wages in urban and central
-urban.central.data <- data[data$urban == 1 & data$central == 1, ]
-boxplot(as.vector(urban.central.data[c(16:24)]), main="compare all wages\nin urban central")
-# compare all wages in urban and west
-# not worth it because it's only one dataset
 ```
 
 ```{r out.width="20%", fig.align="center", fig.show="hold"}
@@ -141,6 +117,7 @@ mapply(function(var, var.name) {
 }, subset.data, names(subset.data))
 ```
 
+The following assertions should be understood in the context of a limited dataset of 8 urban, 34 central and 21 west counties. 
 
 In urban areas, there is higher
 
@@ -209,6 +186,7 @@ central and west are about the same
 * police per capita
 * face to face confrontation (central has slightly higher)
 
+# Model Variable Exploration
 ```{r}
 # potential dependent variable: crime rate
 hist(data$crmrte)
@@ -235,40 +213,13 @@ hist(log(data$avgsen))
 # already verified that these variables are not correlated to each other
 ```
 
-
-
-
-
-# Observations
-- All observations were recorded for the year of 1987. 
-- $urban$, $central$, $west$ are categorical variables.
-- Most wages variables (wcon, wfed, wfir, wmfg, wser, wsta, wtrd) have a positively skewed distribution which may be due to few number people getting paid above the average. 
-- wtuc, wloc appear to be normally distributed.
-- prbarr, prbconv appear to be positively skewed while prbpris is more negatively skewed.
-- avgsen appears to be positively skewed.
-- crmrte, density, polpc, prbconv: The histogram indicates that these variables have positive skews. Given the variables have a meaningful zero-point, we can take the log for a more normal distribution.
-
-```{r}
-# taking the log of the data excluding x, county, year and categorical variables
-plot.log.data <- log(data[!(names(data) %in% c("X", "county", "year", "urban", "central", "west"))])
-ggplot(gather(plot.log.data), aes(value)) + 
-       facet_wrap(~key, scales="free") + 
-       geom_histogram()
-```
-*Observations after taking logs:*
-It looks like the log transformation of variables cmrte, mix, prbconv, wfed, wfir, wmfg, and wsta have made the distributions quite normal. This will help ensure the errors of the model are normal.
-
-*Proposed Model*
-Based on the exploratory data analysis and general intution about the potential determinants of crime, an initial proposed model specification and coefficient expectation are:
+Additional considerations:
 
 - Sum of all wages: Summing the wage variables across sectors may identify whether income inequality between counties may explain the difference in crime rates. Initial thoughts are that sum of wages (higher incomes) lead to lower crime rates, so a linear relationship between sum of wages and crimes committed per person is expected with a negative coefficient.
 
 - log(prbarr) Probability of arrest: There is the possibility that the probability of arrest is positively correlated with crime rate, as higher numbers of arrest can increase the number of crimes recorded.
 
 - tax revenue per capita (taxpc): Lack of government-funded resources can take the form of a lack of educational opportunities or employment options, thus leading to rise in crime rates.
-
-Model 1:
-$log(crmrte) = \beta_0 + \beta_1(allwages) + \beta_2log(prbarr) + \beta_3(taxrev) + u$
 
 # Model Building Process
 
