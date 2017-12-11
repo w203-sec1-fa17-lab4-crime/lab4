@@ -5,6 +5,10 @@ date: "18 December 2017"
 output: pdf_document
 ---
 
+```{r echo=FALSE, results='hide', message=FALSE, warning=FALSE}
+# TODO: place all libraries here?
+```
+
 # Introduction
 
 The purpose of this report is to generate policy suggestions based on our understanding of the determinants of crime in North Carolina in 1987. We will list out the limitations of our analysis, including any estimates that suffer from endogeneity bias. 
@@ -17,7 +21,7 @@ data <- read.csv("crime.csv")
 # verify that it only contains data from 1987
 unique(data$year)
 # list number of counties
-c(nrow(data))
+length(unique(data$county))
 # list number of western, central, and urban counties
 c(sum(data$west == 1), sum(data$central == 1), sum(data$urban == 1))
 # list number of western & urban counties and central & urban counties
@@ -32,7 +36,8 @@ For now, we will not take into consideration probabilities that are greater than
 
 ```{r}
 # list number of probabilities (prbarr, prbconv, prbpris, mix) that are not in range [0, 1]
-c(sum(data$prbarr < 0 | 1 < data$prbarr), sum(data$prbconv < 0 | 1 < data$prbconv), sum(data$prbpris < 0 | 1 < data$prbpris), sum(data$mix < 0 | 1 < data$mix))
+c(sum(data$prbarr < 0 | 1 < data$prbarr), sum(data$prbconv < 0 | 1 < data$prbconv), 
+  sum(data$prbpris < 0 | 1 < data$prbpris), sum(data$mix < 0 | 1 < data$mix))
 # list number of percentages (pctymle, pctmin80) that are not in range [0, 100]
 c(sum(data$pctymle < 0 | 100 < data$pctymle), sum(data$pctmin80 < 0 | 100 < data$pctmin80))
 ```
@@ -43,7 +48,8 @@ We have also decided to create an additional column that adds up all the wages t
 
 ```{r}
 # create a column that adds up all the wages
-data$wtotal <- rowSums(subset(data, select=c("wcon", "wtuc", "wtrd", "wfir", "wser", "wmfg", "wfed", "wsta", "wloc")))
+data$wtotal <- rowSums(subset(data, 
+  select=c("wcon", "wtuc", "wtrd", "wfir", "wser", "wmfg", "wfed", "wsta", "wloc")))
 ```
 
 We then plot each numeric variable in a histogram to see its sample distribution. 
@@ -83,17 +89,32 @@ One outlier that is interesting to note is that the weekly wage in the service i
 summary(data$wser)
 ```
 
-## Variable Selection 
+# Variable Selection 
 
-```{r}
-# perform stepwise selection both forward and backward
-library(MASS)
-#m.all <- lm(crmrte ~ )
+We have determined that our dependent variable will be $crmrte$, the crimes committed per person. We chose this variable because we want to understand what determinants of crime lead to the increase in crime rate.
+
+
+Selecting the independent variables for a regression model and comparing the different regression models will give us a better understanding which determinants of crime lead to increase crime rate. We decide to perform all subsets regression to pick out our independent variables for the regression model. All subsets regression will consider all possible combinations of potential variables and finds the model that best fits the data. We chose all subsets regression over stepwise regression due to the criticism involved in stepwise regression. 
+
+```{r out.width="49%", fig.align="center", fig.show="hold"}
+# perform all subsets regression on all numeric variables
+library(leaps) # regsubsets
+regsubsets.out <- regsubsets(crmrte ~ ., data=num.data)
+plot(regsubsets.out, scale="adjr2", main="Adjusted R^2")
+plot(regsubsets.out, scale="bic", main="BIC")
 ```
 
-```{r}
-# perform all-subsets regression
-library(leaps)
-#leaps <- regsubsets(crmrte ~ )
-```
+Black indicates that a variable is included in the model, and the higher it is on the y axis, the better. 
+Also, since the algorithm returns a best model of each size, it does not make a difference if we used AIC or BIC. For this reason, we will use the second best model shared by both the highest adjusted R^2 and lowest BIC as our first regression model: $crmrte$ ~ $prbarr$ + $prbconv$ + $polpc$ + $density$ + $taxpc$ + $pctmin80$ + $pctymle$. 
 
+# Model 1: only the explanatory variables of key interest
+
+# Model 2: key explanatory variables and covariates that increase accuracy without introducing bias
+
+# Model 3: most, if not all, other covariates
+
+# Summary of Models
+
+# Discussion of Causality
+
+# Conclusion
