@@ -37,7 +37,7 @@ c(sum(data$prbarr < 0 | 1 < data$prbarr), sum(data$prbconv < 0 | 1 < data$prbcon
 c(sum(data$pctymle < 0 | 100 < data$pctymle), sum(data$pctmin80 < 0 | 100 < data$pctmin80))
 ```
 
-prbarr and prbconv contain 1 and 10 datapoints respectively that do not conform to the probability assumption.
+$prbarr$ and $prbconv$ contain 1 and 10 datapoints respectively that do not conform to the probability assumption.
 
 We have also decided to create an additional column that adds up all the wages to see if wages collectively can be considered as a predictor variable for the regression.
 
@@ -50,25 +50,50 @@ We then plot each numeric variable in a histogram to see its sample distribution
 
 ```{r}
 # plot every variable except X, county, year, west, central, urban
+library(ggplot2) # ggplot
+library(tidyr) # gather
 num.data <- data[!(names(data) %in% c("X", "county", "year", "west", "central", "urban"))]
 ggplot(gather(num.data), aes(value)) + 
        facet_wrap(~key, scales="free") + 
        geom_histogram()
 ```
 
+```{r}
+library(moments) # skewness
+skewness(num.data)
+```
 
+Most of the sample distributions appear to be positively skewed. We will take into consideration a logarithmic transformation when it is time to include the variables into the regression model.
+
+From the histograms, we also see several notable outliers. We are under the impression that a county which has outlier in one variable will have outlier in another variable. For this reason, we have listed counties which have repeated outliers when we iterate through the entire numeric variables. 
+
+```{r}
+# iterate through each numeric variable and list the outlier counties and their respective frequency 
+county.ids <- c()
+for(var in num.data) {
+  var.out <- boxplot.stats(var)$out
+  county.ids <- c(county.ids, data[var %in% var.out, ]$county)
+}
+table(county.ids)
+```
+
+One outlier that is interesting to note is that the weekly wage in the service industry for county with id 185 is \$2177.10, which is approximately eight times higher than the median. We do not know if the value is inputted incorrectly or if the county in general is making a weekly wage of \$2177.10 in the service industry.
+
+```{r}
+summary(data$wser)
+```
 
 ## Variable Selection 
 
 ```{r}
 # perform stepwise selection both forward and backward
 library(MASS)
-m.all <- lm(crmrte ~ )
+#m.all <- lm(crmrte ~ )
 ```
 
 ```{r}
 # perform all-subsets regression
 library(leaps)
-leaps <- regsubsets(crmrte ~ )
+#leaps <- regsubsets(crmrte ~ )
 ```
 
