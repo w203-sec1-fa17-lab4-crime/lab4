@@ -6,7 +6,7 @@ output: pdf_document
 ---
 
 ```{r echo=FALSE, results='hide', message=FALSE, warning=FALSE}
-# TODO: place all libraries here?
+library(car)
 ```
 
 # Introduction
@@ -69,9 +69,9 @@ library(moments) # skewness
 skewness(num.data)
 ```
 
-Most of the sample distributions appear to be positively skewed. We will take into consideration a logarithmic transformation when it is time to include the variables into the regression model.
+Most of the sample distributions appear to be positively skewed. We will take into consideration of logarithmic transformations, depending whether the interpretations make sense, when it is time to include the variables into the regression model.
 
-From the histograms, we also see several notable outliers. We are under the impression that a county which has outlier in one variable will have outlier in another variable. For this reason, we have listed counties which have repeated outliers when we iterate through the entire numeric variables. 
+From the histograms, we also see several notable outliers. We are under the impression that a county which has outlier in one variable will likely have outlier in another variable. For this reason, we have listed counties which have repeated outliers when we iterate through the entire numeric variables. 
 
 ```{r}
 # iterate through each numeric variable and list the outlier counties and their respective frequency 
@@ -93,6 +93,15 @@ summary(data$wser)
 
 We have determined that our dependent variable will be $crmrte$, the crimes committed per person. We chose this variable because we want to understand what determinants of crime lead to the increase in crime rate.
 
+#I think adding a scatterplot matrix here would be appropriate to 1) check linear relationships between our variables 2) to identify strength of linear correlation
+
+```{r}
+scatterplotMatrix(~ crmrte + prbarr + prbconv + polpc + density + taxpc + pctmin80 + pctymle, data = data)
+cor(data[, c("crmrte", "prbarr", "prbconv", "polpc", "density", "taxpc", "pctmin80", "pctymle")])
+cor(data[!(names(data) %in% c("X", "county", "year"))], use = "complete.obs")
+# density, taxpc, prbarr, prbconv, urban for model 1 
+```
+
 
 Selecting the independent variables for a regression model and comparing the different regression models will give us a better understanding which determinants of crime lead to increase crime rate. We decide to perform all subsets regression to pick out our independent variables for the regression model. All subsets regression will consider all possible combinations of potential variables and finds the model that best fits the data. We chose all subsets regression over stepwise regression due to the criticism involved in stepwise regression. 
 
@@ -108,10 +117,17 @@ Black indicates that a variable is included in the model, and the higher it is o
 Also, since the algorithm returns a best model of each size, it does not make a difference if we used AIC or BIC. For this reason, we will use the second best model shared by both the highest adjusted R^2 and lowest BIC as our first regression model: $crmrte$ ~ $prbarr$ + $prbconv$ + $polpc$ + $density$ + $taxpc$ + $pctmin80$ + $pctymle$. 
 
 # Model 1: only the explanatory variables of key interest
+density, taxpc, prbarr, prbconv for model 1 
 
 # Model 2: key explanatory variables and covariates that increase accuracy without introducing bias
+model 1 plus variables 
+1. Zero-conditional Mean Bias
+2. Omitted Variable Bias
+
+try to include variables that have decent correlation, but not highly correlated with other variables
 
 # Model 3: most, if not all, other covariates
+toss'em all in
 
 # Summary of Models
 
