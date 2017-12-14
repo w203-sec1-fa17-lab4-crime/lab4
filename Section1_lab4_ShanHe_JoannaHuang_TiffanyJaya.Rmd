@@ -104,7 +104,7 @@ The belief was that by adopting a zero tolerance approach that enforced even the
 
 # Model 1: only the explanatory variables of key interest
 
-Based on the research question, our initial proposed model will include all variables related to stricter law enforcement policies: $prbarr$, $prbconv$, $prbpris$, $avgsen$, and $polpc$. Assuming the "broken windows theory" is valid, we expect generally negative coefficients for all variables.
+Based on the research question, our initial proposed model will include $crmrte$ as the dependent variable and all variables related to stricter law enforcement policies: $prbarr$, $prbconv$, $prbpris$, $avgsen$, and $polpc$ as independent variables. Assuming the "broken windows theory" is valid, we expect generally negative coefficients for all variables.
 
 Given that the histogram of $polpc$ has a significant positive skew, we noted that it would do well to have a log transformation applied to $polpc$ since its values are non-zero and positive. The same can be said about the dependent variable $crmrte$ where its histogram is positively skewed and its values are non-zero and positive. 
 
@@ -114,19 +114,27 @@ hist(data$polpc); hist(log(data$polpc))
 hist(data$crmrte); hist(log(data$crmrte))
 ```
 
-Although the marginal distributions of $prbarr$, $prbconv$, and $prbpris$ could benefit from a logit transformation, applying the transformation will make the residuals less normally distributed as seen from the residuals vs fitted values plot. We steered away from taking the log of these variables because it can make the values more extreme. For this reason, we kept $prbarr$, $prbconv$, and $prbpris$ as is for the linear regression model. 
+Although the marginal distributions of $prbarr$, $prbconv$, and $prbpris$ could benefit from a logit transformation, applying the transformation will make the residuals less normally distributed as seen from the QQ plots for their residuals. **[COMMENT] This arguement is not very strong, and if we comment on how logit tranformation can help, we should show proofs. Jennifer said not to conclude things that aren't in the report.** We steered away from taking the log of these variables because it can make the values more extreme. For this reason, we kept $prbarr$, $prbconv$, and $prbpris$ as is for the linear regression model. 
 
 ```{r out.width="49%", fig.align="center", fig.show="hold"}
 # comparing with and without logit transformation on probability variables
 plot(lm(log(crmrte) ~ logit(prbarr) + logit(prbconv) + logit(prbpris) + avgsen + log(polpc), data=data), 
-     which=1, main="with logit\n")
+     which=2, main="with logit\n")
 plot(lm(log(crmrte) ~ prbarr + prbconv + prbpris + avgsen + log(polpc), data=data), 
-     which=1, main="without logit\n")
+     which=2, main="without logit\n")
 ```
 
 We also kept $avgsen$ as is for easier interpretation. Plus, applying the log on $avgsen$ does not seem to affect the normality of the residual distribution.
 
-For this reason, we propose our first model as follows which contains all explanatory variables of key interest:
+Next, we want to check the relationships between the chosen independent variables and our dependent variable, before and after transformations. 
+
+```{r}
+scatterplotMatrix(~ crmrte + log(crmrte) + prbarr + prbconv + prbpris + avgsen + polpc + log(polpc), data = data)
+```
+
+As we can see from the scatterplot matrix, none of the transformations caused any non-linear relationship. 
+
+Hence, we propose our first model as follows which contains all explanatory variables of key interest:
 
 $$ log(crmrte) = \beta_0 + \beta_1 \cdot prbarr + \beta_2 \cdot prbconv + \beta_3 \cdot prbpris + \beta_4 \cdot avgsen + \beta_5 \cdot log(polpc) + u $$
 
@@ -136,9 +144,24 @@ We will now run the model and test the validity of the 6 CLM assumptions:
 m1 <- lm(log(crmrte) ~ prbarr + prbconv + prbpris + avgsen + log(polpc), data=data)
 ```
 
+## Outliers in Model 1
+
+```{r}
+plot(m1, which=5)
+```
+
+Looking at the residuals vs. leverage plot, it appears there are a couple outliers that have considerable leverage on the regression, but all of them have less than 0.5 Cook's distance, showing little influence. 
+
+```{r}
+data[data$X == 51 | data$X == 79,]
+```
+
+Upon closer inspection, the outlier, record 51, has percentages above 100% for both arrest and conviction. Since this is not actually possible, we should consider removing this outlier. **[COMMENT] we should make a decision on whether to remove them or not, they don't have much influence in model 1 though **
+
 ## CLM 1 - A linear model
 
-The model is specified such that the dependent variable is a linear function of the explanatory variables. 
+The model is specified such that the dependent variable is a linear function of the explanatory variables. As shown in the scatterplot matrix above, all of the dependent variables in the model seem to have a linear relationship with the independent variable $log(crmrte)$
+
 ## CLM 2 - Random Sampling
 
 We do not know how the survey is collected. We assume that the variables are representative of the entire population distribution, but we cannot assess this assumption perfectly. Since there is a possibility that the individuals who collect the survey reach out to only one municipal police department instead of the county police department, the data collected this way are not representative of the county. There is nothing we can do to correct this, so we note this as a potential weakness in the analysis. 
@@ -155,7 +178,7 @@ cor(data.matrix(subset(data, select=c("prbarr", "prbconv", "prbpris", "avgsen", 
 vif(m1)
 ```
 
-The explanatory variables (logarrperc, logconvperc, logpolpc, logavgsen and prisperc) are not perfectly correlated and the VIFs are low (i.e. less than 10), so there is no perfect multicollinearity of the independent variables.
+The explanatory variables (prbarr, prbconv, polpc, logavgsen and prbpris) are not perfectly correlated and the VIFs are low (i.e. less than 10), so there is no perfect multicollinearity of the independent variables.
 
 Is the assumption valid? **Yes** 
 **Response**: No response required.
@@ -167,44 +190,31 @@ To see whether there is a zero-conditional mean across all x’s, we will plot t
 plot(m1, which=1)
 ```
 
-```{r}
-plot(m1, which=5)
-```
-
-Looking at the residuals vs. leverage plot, it appears there are a couple outliers that have considerable leverage on the regression, one of which also has a Cook's distance that's greater than 1. 
+The plot indicates little evidence that the zero-conditional mean assumption doesn’t hold, as the red spline line remains close to zero despite its slight dip and rise at both ends due to less observations.
 
 ```{r}
-data[data$X == 51 | data$X == 79,]
+(cov(data$prbarr,m1$residuals))
+(cov(data$prbconv,m1$residuals))
+(cov(data$avgsen,m1$residuals))
+(cov(log(data$polpc),m1$residuals))
+(cov(data$prbpris,m1$residuals))
 ```
-Upon closer inspection, the outlier, record 51, has percentages above 100% for both arrest and conviction. Since this is not actually possible, we should consider removing this outlier.
-
-```{r}
-(cov(data$logarrperc,m1$residuals))
-(cov(data$logconvperc,m1$residuals))
-(cov(data$logavgsen,m1$residuals))
-(cov(data$logpolpc,m1$residuals))
-(cov(data$prisperc,m1$residuals))
-```
-
-The plots indicates little evidence that the zero-conditional mean assumption doesn’t hold, as the red spline line remains close to zero despite its slight dip and rise at both ends due to less observations.
 
 The covariances of the three independent variables with the residuals are very close to zero indicating they are likely exogenous.
 
-One data point has a large Cook’s distance and may have undue influence on the model fit.
+Is the assumption valid? **Yes**
 
-Is the assumption valid? 
-
-**Response**: 
+**Response**: Not Needed 
 
 ## CLM 5 - Homoscedasticity
 To determine whether the variance of $\mu$ is fixed for all x’s, we will first take a look at the residuals plotted against the fitted values to see whether the variance of residuals is constant across the fitted values.  
 ```{r}
-plot(m1, which=1)
+plot(m1, which=c(1,3))
 ```
-The plot indicates no strong evidence of heteroskedasticity. 
+The plots indicate no strong evidence of heteroskedasticity. 
 
 To further understand whether the model meets homoskedasticity, we will perform statistical tests Breusch-Pagan and the Score-test for non-constant error variance.
-```{r}
+```{r, warning = FALSE}
 library(lmtest)
 bptest(m1)
 ```
@@ -248,8 +258,13 @@ qqline(stud, col="red", lwd=2)
 ```
 The histograms of the residuals have a negative skew, and QQ-plots further demonstrate nonormality in the error distribution.
 
+```{r}
+#check sample size for model 1
+nobs(m1)
+```
+
 Is the assumption valid? **No**
-Response: 
+Response: Since we have 90 observations in model 1, we should be confident to invoke CLM and assume normality of the sampling distribution of the slope parameters when doing hypothesis tests.
 
 # References:
 "Shattering "Broken Windows": An Analysis of San Francisco’s Alternative Crime Policies", CENTER ON JUVENILE AND CRIMINAL JUSTICE, October 1999 http://www.cjcj.org/uploads/cjcj/documents/shattering.pdf
