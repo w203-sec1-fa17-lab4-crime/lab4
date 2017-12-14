@@ -111,17 +111,7 @@ hist(data$polpc); hist(log(data$polpc))
 hist(data$crmrte); hist(log(data$crmrte))
 ```
 
-Though $prbarr$, $prbconv$, and $prbpris$ are positively skewed as well, we decided against taking the log of these variables because log transformations can make values between 0 and 1 more extreme. Furthermore, applying the log transformations led to less normally-distributed residuals as seen from the QQ plot below.
-
-```{r out.width="49%", fig.align="center", fig.show="hold"}
-# comparing with and without log transformation on probability variables
-plot(lm(log(crmrte) ~ log(prbarr) + log(prbconv) + log(prbpris) + avgsen + log(polpc), data=data),
-     which=2, main="with log\n")
-plot(lm(log(crmrte) ~ prbarr + prbconv + prbpris + avgsen + log(polpc), data=data),
-     which=2, main="without log\n")
-```
-
-We also kept $avgsen$ as is for easier interpretation. Plus, applying the log on $avgsen$ does not seem to affect the normality of the residual distribution.
+Though $prbarr$, $prbconv$, and $prbpris$ are positively skewed as well, we decided against taking the log of these variables because log transformations can make values between 0 and 1 more extreme. We also kept $avgsen$ as is for easier interpretation. Plus, applying the log on $avgsen$ does not seem to affect the normality of the residual distribution.
 
 Next, we want to check the relationships between the chosen independent variables and our dependent variable, before and after transformations.
 
