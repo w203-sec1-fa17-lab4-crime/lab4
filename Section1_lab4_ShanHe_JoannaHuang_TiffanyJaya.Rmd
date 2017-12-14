@@ -12,12 +12,12 @@ library(moments) # skewness
 library(outliers) # outlier
 library(tidyr) # gather
 # prevent scientific notation, specifically used in outliers package
-options(scipen=999) 
+options(scipen=999)
 ```
 
 # Introduction
 
-The purpose of this report is to generate policy suggestions based on our understanding of the determinants of crime in North Carolina in 1987. We will list out the limitations of our analysis, including any estimates that suffer from endogeneity bias. 
+The purpose of this report is to generate policy suggestions based on our understanding of the determinants of crime in North Carolina in 1987. We will list out the limitations of our analysis, including any estimates that suffer from endogeneity bias.
 
 # Exploratory Data Analysis
 
@@ -36,16 +36,16 @@ c(sum(data$west == 1 & data$urban == 1), sum(data$central == 1 & data$urban == 1
 colSums(sapply(data, is.na))
 ```
 
-The dataset contains 90 counties from North Carolina, all of which is collected in 1987. Out of the 90 counties, 21 are from western NC (out of which 1 is also urban), 34 are from central NC (out of which 5 is also urban), and 8 are considered urban counties. There are no missing values which will make our analysis easier. 
+The dataset contains 90 counties from North Carolina, all of which is collected in 1987. Out of the 90 counties, 21 are from western NC (out of which 1 is also urban), 34 are from central NC (out of which 5 is also urban), and 8 are considered urban counties. There are no missing values which will make our analysis easier.
 
-Perusing the variables, we note that there are 
-For now, we take note on variables with probabilities and percentages that fall outside the range. Our assumption is that probabilities are in the range [0, 1] and percentages are in the range [0, 100]. 
+Perusing the variables, we note that there are
+For now, we take note on variables with probabilities and percentages that fall outside the range. Our assumption is that probabilities are in the range [0, 1] and percentages are in the range [0, 100].
 
 For now, we will not take into consideration probabilities that are greater than 1 or less than 0 as well as percentages that are greater than 1 or less than 0. The assumption is that probabilities are in the range [0, 1] and percentages are in the range [0, 100]. Until we know the reason why the values are outside their range, we will not employ datapoints that do not conform to this assumption.
 
 ```{r}
 # list number of probabilities (prbarr, prbconv, prbpris, mix) that are not in range [0, 1]
-c(sum(data$prbarr < 0 | 1 < data$prbarr), sum(data$prbconv < 0 | 1 < data$prbconv), 
+c(sum(data$prbarr < 0 | 1 < data$prbarr), sum(data$prbconv < 0 | 1 < data$prbconv),
   sum(data$prbpris < 0 | 1 < data$prbpris), sum(data$mix < 0 | 1 < data$mix))
 # list number of percentages (pctymle, pctmin80) that are not in range [0, 100]
 c(sum(data$pctymle < 0 | 100 < data$pctymle), sum(data$pctmin80 < 0 | 100 < data$pctmin80))
@@ -53,13 +53,13 @@ c(sum(data$pctymle < 0 | 100 < data$pctymle), sum(data$pctmin80 < 0 | 100 < data
 
 $prbarr$ and $prbconv$ contain 1 and 10 datapoints respectively that do not conform to the probability assumption.
 
-We then plot each numeric variable in a histogram to see its sample distribution. 
+We then plot each numeric variable in a histogram to see its sample distribution.
 
 ```{r message=FALSE}
 # plot every variable except X, county, year, west, central, urban
 num.data <- data[!(names(data) %in% c("X", "county", "year", "west", "central", "urban"))]
-ggplot(gather(num.data), aes(value)) + 
-       facet_wrap(~key, scales="free") + 
+ggplot(gather(num.data), aes(value)) +
+       facet_wrap(~key, scales="free") +
        geom_histogram()
 ```
 
@@ -69,10 +69,10 @@ skewness(num.data)
 
 Most of the sample distributions appear to be positively skewed. We will take into consideration of logarithmic transformations, depending whether the interpretations make sense, when it is time to include the variables into the regression model.
 
-From the histograms, we also see several notable outliers. We are under the impression that a county which has outlier in one variable will likely have outlier in another variable. For this reason, we have listed counties which have repeated outliers when we iterate through the entire numeric variables. 
+From the histograms, we also see several notable outliers. We are under the impression that a county which has outlier in one variable will likely have outlier in another variable. For this reason, we have listed counties which have repeated outliers when we iterate through the entire numeric variables.
 
 ```{r}
-# iterate through each numeric variable and list the outlier counties and their respective frequency 
+# iterate through each numeric variable and list the outlier counties and their respective frequency
 county.ids <- c()
 for(var in num.data) {
   var.out <- boxplot.stats(var)$out
@@ -96,17 +96,17 @@ summary(data$wser)
 James Q. Wilson and George Kelling's "broken windows theory" in 1982 led to a nation-wide movement for stricter crime-fighting policies between the 1980s and 1990s. The theory states:  
 
 > *if the first broken window in a building is not repaired, then people*
-> *who like breaking windows will assume that no one cares about the* 
-> *building and more windows will be broken. Soon the building will have* 
-> *no windows....* 
+> *who like breaking windows will assume that no one cares about the*
+> *building and more windows will be broken. Soon the building will have*
+> *no windows....*
 
-The belief was that by adopting a zero tolerance approach that enforced even the lowest level offenses, crime rates would subsequently go down. While New York City notably enforced this more stringent approach, San Francisco went the opposite direction of less strident law enforcement policies that reduced arrests, prosecutions and incarceration rates. Both sides experienced considerable declines in crime rates. Thus we hope to test the "broken windows theory" for the counties of South Carolina in 1987 and answer the question: Does the conservative approach of deterrence through arrests, incapacitation through imprisonment, harsh sentencing and higher police per capita lead to lower crime rates? 
+The belief was that by adopting a zero tolerance approach that enforced even the lowest level offenses, crime rates would subsequently go down. While New York City notably enforced this more stringent approach, San Francisco went the opposite direction of less strident law enforcement policies that reduced arrests, prosecutions and incarceration rates. Both sides experienced considerable declines in crime rates. Thus we hope to test the "broken windows theory" for the counties of South Carolina in 1987 and answer the question: Does the conservative approach of deterrence through arrests, incapacitation through imprisonment, harsh sentencing and higher police per capita lead to lower crime rates?
 
 # Model 1: only the explanatory variables of key interest
 
 Based on the research question, our initial proposed model will include $crmrte$ as the dependent variable and all variables related to stricter law enforcement policies: $prbarr$, $prbconv$, $prbpris$, $avgsen$, and $polpc$ as independent variables. Assuming the "broken windows theory" is valid, we expect generally negative coefficients for all variables.
 
-Given that the histogram of $polpc$ has a significant positive skew, we noted that it would do well to have a log transformation applied to $polpc$ since its values are non-zero and positive. The same can be said about the dependent variable $crmrte$ where its histogram is positively skewed and its values are non-zero and positive. 
+Given that the histogram of $polpc$ has a significant positive skew, we noted that it would do well to have a log transformation applied to $polpc$ since its values are non-zero and positive. The same can be said about the dependent variable $crmrte$ where its histogram is positively skewed and its values are non-zero and positive.
 
 ```{r out.width="49%", fig.align="center", fig.show="hold"}
 # before and after log transformation
@@ -114,31 +114,31 @@ hist(data$polpc); hist(log(data$polpc))
 hist(data$crmrte); hist(log(data$crmrte))
 ```
 
-Although the marginal distributions of $prbarr$, $prbconv$, and $prbpris$ could benefit from a logit transformation, applying the transformation will make the residuals less normally distributed as seen from the QQ plots for their residuals. **[COMMENT] This arguement is not very strong, and if we comment on how logit tranformation can help, we should show proofs. Jennifer said not to conclude things that aren't in the report.** We steered away from taking the log of these variables because it can make the values more extreme. For this reason, we kept $prbarr$, $prbconv$, and $prbpris$ as is for the linear regression model. 
+Although the marginal distributions of $prbarr$, $prbconv$, and $prbpris$ could benefit from a logit transformation, applying the transformation will make the residuals less normally distributed as seen from the QQ plots for their residuals. **[COMMENT] This arguement is not very strong, and if we comment on how logit tranformation can help, we should show proofs. Jennifer said not to conclude things that aren't in the report.** We steered away from taking the log of these variables because it can make the values more extreme. For this reason, we kept $prbarr$, $prbconv$, and $prbpris$ as is for the linear regression model.
 
 ```{r out.width="49%", fig.align="center", fig.show="hold"}
 # comparing with and without logit transformation on probability variables
-plot(lm(log(crmrte) ~ logit(prbarr) + logit(prbconv) + logit(prbpris) + avgsen + log(polpc), data=data), 
+plot(lm(log(crmrte) ~ logit(prbarr) + logit(prbconv) + logit(prbpris) + avgsen + log(polpc), data=data),
      which=2, main="with logit\n")
-plot(lm(log(crmrte) ~ prbarr + prbconv + prbpris + avgsen + log(polpc), data=data), 
+plot(lm(log(crmrte) ~ prbarr + prbconv + prbpris + avgsen + log(polpc), data=data),
      which=2, main="without logit\n")
 ```
 
 We also kept $avgsen$ as is for easier interpretation. Plus, applying the log on $avgsen$ does not seem to affect the normality of the residual distribution.
 
-Next, we want to check the relationships between the chosen independent variables and our dependent variable, before and after transformations. 
+Next, we want to check the relationships between the chosen independent variables and our dependent variable, before and after transformations.
 
 ```{r}
 scatterplotMatrix(~ crmrte + log(crmrte) + prbarr + prbconv + prbpris + avgsen + polpc + log(polpc), data = data)
 ```
 
-As we can see from the scatterplot matrix, none of the transformations caused any non-linear relationship. 
+As we can see from the scatterplot matrix, none of the transformations caused any non-linear relationship.
 
 Hence, we propose our first model as follows which contains all explanatory variables of key interest:
 
 $$ log(crmrte) = \beta_0 + \beta_1 \cdot prbarr + \beta_2 \cdot prbconv + \beta_3 \cdot prbpris + \beta_4 \cdot avgsen + \beta_5 \cdot log(polpc) + u $$
 
-We will now run the model and test the validity of the 6 CLM assumptions: 
+We will now run the model and test the validity of the 6 CLM assumptions:
 
 ```{r}
 m1 <- lm(log(crmrte) ~ prbarr + prbconv + prbpris + avgsen + log(polpc), data=data)
@@ -150,7 +150,7 @@ m1 <- lm(log(crmrte) ~ prbarr + prbconv + prbpris + avgsen + log(polpc), data=da
 plot(m1, which=5)
 ```
 
-Looking at the residuals vs. leverage plot, it appears there are a couple outliers that have considerable leverage on the regression, but all of them have less than 0.5 Cook's distance, showing little influence. 
+Looking at the residuals vs. leverage plot, it appears there are a couple outliers that have considerable leverage on the regression, but all of them have less than 0.5 Cook's distance, showing little influence.
 
 ```{r}
 data[data$X == 51 | data$X == 79,]
@@ -164,7 +164,7 @@ The model is specified such that the dependent variable is a linear function of 
 
 ## CLM 2 - Random Sampling
 
-We do not know how the survey is collected. We assume that the variables are representative of the entire population distribution, but we cannot assess this assumption perfectly. Since there is a possibility that the individuals who collect the survey reach out to only one municipal police department instead of the county police department, the data collected this way are not representative of the county. There is nothing we can do to correct this, so we note this as a potential weakness in the analysis. 
+We do not know how the survey is collected. We assume that the variables are representative of the entire population distribution, but we cannot assess this assumption perfectly. Since there is a possibility that the individuals who collect the survey reach out to only one municipal police department instead of the county police department, the data collected this way are not representative of the county. There is nothing we can do to correct this, so we note this as a potential weakness in the analysis.
 
 ## CLM 3 - Multicollinearity
 
@@ -180,7 +180,7 @@ vif(m1)
 
 The explanatory variables (prbarr, prbconv, polpc, logavgsen and prbpris) are not perfectly correlated and the VIFs are low (i.e. less than 10), so there is no perfect multicollinearity of the independent variables.
 
-Is the assumption valid? **Yes** 
+Is the assumption valid? **Yes**
 **Response**: No response required.
 
 ## CLM 4 – Zero-Conditional Mean
@@ -204,14 +204,14 @@ The covariances of the three independent variables with the residuals are very c
 
 Is the assumption valid? **Yes**
 
-**Response**: Not Needed 
+**Response**: Not Needed
 
 ## CLM 5 - Homoscedasticity
 To determine whether the variance of $\mu$ is fixed for all x’s, we will first take a look at the residuals plotted against the fitted values to see whether the variance of residuals is constant across the fitted values.  
 ```{r}
 plot(m1, which=c(1,3))
 ```
-The plots indicate no strong evidence of heteroskedasticity. 
+The plots indicate no strong evidence of heteroskedasticity.
 
 To further understand whether the model meets homoskedasticity, we will perform statistical tests Breusch-Pagan and the Score-test for non-constant error variance.
 ```{r, warning = FALSE}
