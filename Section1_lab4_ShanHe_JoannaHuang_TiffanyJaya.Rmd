@@ -6,7 +6,11 @@ output: pdf_document
 ---
 
 ```{r echo=FALSE, results='hide', message=FALSE, warning=FALSE}
-# TODO: place all libraries here?
+library(car) # scatterplotMatrix
+library(ggplot2) # ggplot
+library(moments) # skewness
+library(outliers) # outlier
+library(tidyr) # gather
 # prevent scientific notation, specifically used in outliers package
 options(scipen=999) 
 ```
@@ -50,8 +54,6 @@ We then plot each numeric variable in a histogram to see its sample distribution
 
 ```{r message=FALSE}
 # plot every variable except X, county, year, west, central, urban
-library(ggplot2) # ggplot
-library(tidyr) # gather
 num.data <- data[!(names(data) %in% c("X", "county", "year", "west", "central", "urban"))]
 ggplot(gather(num.data), aes(value)) + 
        facet_wrap(~key, scales="free") + 
@@ -59,7 +61,6 @@ ggplot(gather(num.data), aes(value)) +
 ```
 
 ```{r}
-library(moments) # skewness
 skewness(num.data)
 ```
 
@@ -78,7 +79,6 @@ table(county.ids)
 ```
 ```{r}
 # list the most extreme outlier
-library(outliers) # outlier
 outlier(num.data)
 ```
 
@@ -125,7 +125,6 @@ plot.data <- na.omit(log(data[, sapply(data, is.numeric)]))
 ```
 
 ```{r}
-library(car)
 scatterplotMatrix(~log(crmrte) + log(arrperc) + log(convperc) + log(polpc) + log(avgsen) + prisperc, data = data)
  + cor(data[, c("crmrte", "arrperc", "convperc", "polpc", "avgsen", "prisperc")])
  + cor(data[!(names(data) %in% c("X", "county", "year"))], use = "complete.obs")
@@ -267,6 +266,21 @@ The histograms of the residuals have a negative skew, and QQ-plots further demon
 
 Is the assumption valid? **No**
 Response: 
+
+# Model 2: add covariates that increase accuracy without bias
+
+crmrte ~ avgsen + prbarr + prbconv + prbpris + polpc
+
+```{r}
+hist(data$avgsen)
+hist(data$prbarr)
+hist(data$prbconv)
+hist(data$prbpris)
+hist(data$polpc)
+```
+
+
+
 
 # References:
 "Shattering "Broken Windows": An Analysis of San Francisco’s Alternative Crime Policies", CENTER ON JUVENILE AND CRIMINAL JUSTICE, October 1999 http://www.cjcj.org/uploads/cjcj/documents/shattering.pdf
