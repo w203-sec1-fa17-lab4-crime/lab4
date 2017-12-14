@@ -139,7 +139,6 @@ m1 <- lm(log(crmrte) ~ prbarr + prbconv + prbpris + avgsen + log(polpc), data=da
 ## CLM 1 - A linear model
 
 The model is specified such that the dependent variable is a linear function of the explanatory variables. 
-
 Is the assumption valid? **Yes**
 
 **Response**: No response required.
