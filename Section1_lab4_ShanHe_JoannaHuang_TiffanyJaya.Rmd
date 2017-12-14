@@ -6,7 +6,9 @@ output: pdf_document
 ---
 
 ```{r echo=FALSE, results='hide', message=FALSE, warning=FALSE}
-library(car)
+# TODO: place all libraries here?
+# prevent scientific notation, specifically used in outliers package
+options(scipen=999) 
 ```
 
 # Introduction
@@ -46,7 +48,7 @@ $prbarr$ and $prbconv$ contain 1 and 10 datapoints respectively that do not conf
 
 We then plot each numeric variable in a histogram to see its sample distribution. 
 
-```{r}
+```{r message=FALSE}
 # plot every variable except X, county, year, west, central, urban
 library(ggplot2) # ggplot
 library(tidyr) # gather
@@ -74,6 +76,11 @@ for(var in num.data) {
 }
 table(county.ids)
 ```
+```{r}
+# list the most extreme outlier
+library(outliers) # outlier
+outlier(num.data)
+```
 
 One outlier that is interesting to note is that the weekly wage in the service industry for county with id 185 is \$2177.10, which is approximately eight times higher than the median. We do not know if the value is inputted incorrectly or if the county in general is making a weekly wage of \$2177.10 in the service industry.
 
@@ -81,7 +88,7 @@ One outlier that is interesting to note is that the weekly wage in the service i
 summary(data$wser)
 ```
 
-# Proposed Model
+# Research Question
 
 James Q. Wilson and George Kelling's "broken windows theory" in 1982 led to a nation-wide movement for stricter crime-fighting policies between the 1980s and 1990s. The theory states:  
 
@@ -92,7 +99,8 @@ James Q. Wilson and George Kelling's "broken windows theory" in 1982 led to a na
 
 The belief was that by adopting a zero tolerance approach that enforced even the lowest level offenses, crime rates would subsequently go down. While New York City notably enforced this more stringent approach, San Francisco went the opposite direction of less strident law enforcement policies that reduced arrests, prosecutions and incarceration rates. Both sides experienced considerable declines in crime rates. Thus we hope to test the "broken windows theory" for the counties of South Carolina in 1987 and answer the question: Does the conservative approach of deterrence through arrests, incapacitation through imprisonment, harsh sentencing and higher police per capita lead to lower crime rates? 
 
-# Model 1:
+# Model 1: only the explanatory variables of key interest
+
 Based on the exploratory data analysis and goal of testing the "broken windows theory", our initial proposed model will include all variables related to stricter law enforcement policies: *prbarr*, *prbconv*, *prbpris*, *avgsen*, and *polpc*. Assuming the "broken windows theory" is valid, we expect generally negative coefficients for all variables.
 
 To make *prbarr*, *prbconv* and *prbpris* interpretation more intuitive to understand, we decided to transform them into percentages, and will use these new variables moving forward.
@@ -117,9 +125,10 @@ plot.data <- na.omit(log(data[, sapply(data, is.numeric)]))
 ```
 
 ```{r}
-+scatterplotMatrix(~ log(crmrte) + log(arrperc) + log(convperc) + log(polpc) + log(avgsen) + prisperc, data = data)
- +cor(data[, c("crmrte", "arrperc", "convperc", "polpc", "avgsen", "prisperc")])
- +cor(data[!(names(data) %in% c("X", "county", "year"))], use = "complete.obs")
+library(car)
+scatterplotMatrix(~log(crmrte) + log(arrperc) + log(convperc) + log(polpc) + log(avgsen) + prisperc, data = data)
+ + cor(data[, c("crmrte", "arrperc", "convperc", "polpc", "avgsen", "prisperc")])
+ + cor(data[!(names(data) %in% c("X", "county", "year"))], use = "complete.obs")
 ```
 Looking at the relationships between crmrte (y) and the newly transformed x variables, it appears that the relationships are linear and we can continue with our proposed multiregression model.
 
@@ -205,7 +214,7 @@ Is the assumption valid?
 **Response**: 
 
 ## CLM 5 - Homoscedasticity
-To determine whether the variance of \mu is fixed for all x’s, we will first take a look at the residuals plotted against the fitted values to see whether the variance of residuals is constant across the fitted values.  
+To determine whether the variance of $\mu$ is fixed for all x’s, we will first take a look at the residuals plotted against the fitted values to see whether the variance of residuals is constant across the fitted values.  
 ```{r}
 plot(m1, which=1)
 ```
