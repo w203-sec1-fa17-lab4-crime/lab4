@@ -279,8 +279,15 @@ hist(data$prbpris)
 hist(data$polpc)
 ```
 
+# Model 3: most, if not all, other covariates
 
+Adding arbitrary variables uses up valuable degrees of freedom which increases the standard error which in turn reduces the precision of this estimate. This effect is especially pronounced in small sample size. 
 
+# Summary of Models
+
+# Discussion of Causality
+
+# Conclusion
 
 # References:
 "Shattering "Broken Windows": An Analysis of San Francisco’s Alternative Crime Policies", CENTER ON JUVENILE AND CRIMINAL JUSTICE, October 1999 http://www.cjcj.org/uploads/cjcj/documents/shattering.pdf
