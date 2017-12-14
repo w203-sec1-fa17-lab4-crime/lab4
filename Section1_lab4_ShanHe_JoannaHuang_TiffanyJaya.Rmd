@@ -139,15 +139,9 @@ m1 <- lm(log(crmrte) ~ prbarr + prbconv + prbpris + avgsen + log(polpc), data=da
 ## CLM 1 - A linear model
 
 The model is specified such that the dependent variable is a linear function of the explanatory variables. 
-Is the assumption valid? **Yes**
-
-**Response**: No response required.
-
 ## CLM 2 - Random Sampling
 
-Is the assumption valid? 
-
-**Response**: 
+We do not know how the survey is collected. We assume that the variables are representative of the entire population distribution, but we cannot assess this assumption perfectly. Since there is a possibility that the individuals who collect the survey reach out to only one municipal police department instead of the county police department, the data collected this way are not representative of the county. There is nothing we can do to correct this, so we note this as a potential weakness in the analysis. 
 
 ## CLM 3 - Multicollinearity
 
