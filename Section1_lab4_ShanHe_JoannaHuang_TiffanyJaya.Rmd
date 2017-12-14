@@ -155,10 +155,7 @@ cor(data.matrix(subset(data, select=c("prbarr", "prbconv", "prbpris", "avgsen", 
 vif(m1)
 ```
 
-The explanatory variables (logarrperc, logconvperc, logpolpc, logavgsen and prisperc) are not perfectly correlated and the VIFs are low (i.e. less than 10), so there is no perfect multicollinearity of the independent variables.
-
-Is the assumption valid? **Yes** 
-**Response**: No response required.
+None of the explantory variables are perfectly correlated, and the VIFs are low (i.e. less than 10), so there is no perfect multicollinearity of the independent variables.
 
 ## CLM 4 – Zero-Conditional Mean
 To see whether there is a zero-conditional mean across all x’s, we will plot the residuals against the fitted values.
