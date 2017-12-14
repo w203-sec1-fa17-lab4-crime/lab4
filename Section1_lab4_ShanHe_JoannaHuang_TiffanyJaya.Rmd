@@ -38,10 +38,7 @@ colSums(sapply(data, is.na))
 
 The dataset contains 90 counties from North Carolina, all of which is collected in 1987. Out of the 90 counties, 21 are from western NC (out of which 1 is also urban), 34 are from central NC (out of which 5 is also urban), and 8 are considered urban counties. There are no missing values which will make our analysis easier.
 
-Perusing the variables, we note that there are
-For now, we take note on variables with probabilities and percentages that fall outside the range. Our assumption is that probabilities are in the range [0, 1] and percentages are in the range [0, 100].
-
-For now, we will not take into consideration probabilities that are greater than 1 or less than 0 as well as percentages that are greater than 1 or less than 0. The assumption is that probabilities are in the range [0, 1] and percentages are in the range [0, 100]. Until we know the reason why the values are outside their range, we will not employ datapoints that do not conform to this assumption.
+There are some probabilities in the dataset that are greater than 1 or less than 0 as well as percentages that are greater than 1 or less than 0. The assumption is that probabilities are in the range [0, 1] and percentages are in the range [0, 100]. Until we know the reason why the values are outside their range, we will retain these values in our models.
 
 ```{r}
 # list number of probabilities (prbarr, prbconv, prbpris, mix) that are not in range [0, 1]
@@ -67,9 +64,9 @@ ggplot(gather(num.data), aes(value)) +
 skewness(num.data)
 ```
 
-Most of the sample distributions appear to be positively skewed. We will take into consideration of logarithmic transformations, depending whether the interpretations make sense, when it is time to include the variables into the regression model.
+Most of the sample distributions appear to be positively skewed. When choosing the variables for our regression models, we will consider logarithmic transformations if the interpretations make sense.
 
-From the histograms, we also see several notable outliers. We are under the impression that a county which has outlier in one variable will likely have outlier in another variable. For this reason, we have listed counties which have repeated outliers when we iterate through the entire numeric variables.
+From the histograms, we also see several notable outliers. We are under the impression that a county which has an outlier in one variable will likely have an outlier in another variable. For this reason, we have listed counties which have repeated outliers when we iterate through the entire numeric variables.
 
 ```{r}
 # iterate through each numeric variable and list the outlier counties and their respective frequency
@@ -106,7 +103,7 @@ The belief was that by adopting a zero tolerance approach that enforced even the
 
 Based on the research question, our initial proposed model will include $crmrte$ as the dependent variable and all variables related to stricter law enforcement policies: $prbarr$, $prbconv$, $prbpris$, $avgsen$, and $polpc$ as independent variables. Assuming the "broken windows theory" is valid, we expect generally negative coefficients for all variables.
 
-Given that the histogram of $polpc$ has a significant positive skew, we noted that it would do well to have a log transformation applied to $polpc$ since its values are non-zero and positive. The same can be said about the dependent variable $crmrte$ where its histogram is positively skewed and its values are non-zero and positive.
+Given that the histogram of $polpc$ has a significant positive skew, we noted a log transformation may be suitable since its values are non-zero and positive. The same can be said about the dependent variable $crmrte$ where its histogram is positively skewed and its values are non-zero and positive.
 
 ```{r out.width="49%", fig.align="center", fig.show="hold"}
 # before and after log transformation
@@ -114,14 +111,14 @@ hist(data$polpc); hist(log(data$polpc))
 hist(data$crmrte); hist(log(data$crmrte))
 ```
 
-Although the marginal distributions of $prbarr$, $prbconv$, and $prbpris$ could benefit from a logit transformation, applying the transformation will make the residuals less normally distributed as seen from the QQ plots for their residuals. **[COMMENT] This arguement is not very strong, and if we comment on how logit tranformation can help, we should show proofs. Jennifer said not to conclude things that aren't in the report.** We steered away from taking the log of these variables because it can make the values more extreme. For this reason, we kept $prbarr$, $prbconv$, and $prbpris$ as is for the linear regression model.
+Though $prbarr$, $prbconv$, and $prbpris$ are positively skewed as well, we decided against taking the log of these variables because log transformations can make values between 0 and 1 more extreme. Furthermore, applying the log transformations led to less normally-distributed residuals as seen from the QQ plot below.
 
 ```{r out.width="49%", fig.align="center", fig.show="hold"}
-# comparing with and without logit transformation on probability variables
-plot(lm(log(crmrte) ~ logit(prbarr) + logit(prbconv) + logit(prbpris) + avgsen + log(polpc), data=data),
-     which=2, main="with logit\n")
+# comparing with and without log transformation on probability variables
+plot(lm(log(crmrte) ~ log(prbarr) + log(prbconv) + log(prbpris) + avgsen + log(polpc), data=data),
+     which=2, main="with log\n")
 plot(lm(log(crmrte) ~ prbarr + prbconv + prbpris + avgsen + log(polpc), data=data),
-     which=2, main="without logit\n")
+     which=2, main="without log\n")
 ```
 
 We also kept $avgsen$ as is for easier interpretation. Plus, applying the log on $avgsen$ does not seem to affect the normality of the residual distribution.
