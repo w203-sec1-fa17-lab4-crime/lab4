@@ -145,16 +145,13 @@ We do not know how the survey is collected. We assume that the variables are rep
 
 ## CLM 3 - Multicollinearity
 
-As a quick test of the multicollinearity condition, we check the correlation of the two explanatory variables and their Variance Inflation Factors (VIF):
+As a quick test of the multicollinearity condition, we check the correlation of the explanatory variables and their Variance Inflation Factors (VIF):
+
 ```{r}
-data$logarrperc = log(data$arrperc)
-data$logconvperc = log(data$convperc)
-data$logpolpc = log(data$polpc)
-data$logavgsen = log(data$avgsen)
-X = data.matrix(subset(data, select=c("logarrperc", "logconvperc", "logpolpc", "logavgsen", "prisperc")))
-(Cor = cor(X))
-```
-```{r}
+# correlation matrix of explanatory variables
+data$log.polpc <- log(data$polpc)
+cor(data.matrix(subset(data, select=c("prbarr", "prbconv", "prbpris", "avgsen", "polpc", "log.polpc"))))
+# verify VIFs are less than 10
 vif(m1)
 ```
 
