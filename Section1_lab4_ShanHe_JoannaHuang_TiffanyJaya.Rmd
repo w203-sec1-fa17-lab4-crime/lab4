@@ -112,7 +112,7 @@ hist(data$crmrte); hist(log(data$crmrte))
 hist(data$polpc); hist(log(data$polpc))
 ```
 
-Though $prbarr$, $prbconv$, and $prbpris$ are positively skewed as well, we decided against taking the log of these variables because log transformations can make values between 0 and 1 more extreme. We also kept $avgsen$ as is for easier interpretation. Plus, applying the log on $avgsen$ does not seem to affect the normality of the residual distribution.
+Though $prbarr$, $prbconv$, and $prbpris$ are positively skewed as well, we decided against taking the log of these variables because log transformations can make values between 0 and 1 more extreme. We also kept $avgsen$ as is for easier interpretation. 
 
 Next, we want to check the relationships between the chosen independent variables and our dependent variable, before and after transformations. We want to ensure that we did not deviate any straight-line relationships between the independent variables and the dependent variable using the transformation.
 
@@ -208,7 +208,7 @@ The Breusch-pagan test validates our assumption of homoskedasticity. Since the p
 ncvTest(m1)
 ```
 
-The Score-test also validates this assumption. Since the p-value that is statistically not significant, we cannot reject the null hypothesis of constant error variance. 
+The Score-test also validates this assumption. Since the p-value is statistically not significant, we cannot reject the null hypothesis of constant error variance. 
 
 For this reason, the assumption of homoskedasticity is met. 
 
