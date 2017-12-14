@@ -38,6 +38,9 @@ colSums(sapply(data, is.na))
 
 The dataset contains 90 counties from North Carolina, all of which is collected in 1987. Out of the 90 counties, 21 are from western NC (out of which 1 is also urban), 34 are from central NC (out of which 5 is also urban), and 8 are considered urban counties. There are no missing values which will make our analysis easier. 
 
+Perusing the variables, we note that there are 
+For now, we take note on variables with probabilities and percentages that fall outside the range. Our assumption is that probabilities are in the range [0, 1] and percentages are in the range [0, 100]. 
+
 For now, we will not take into consideration probabilities that are greater than 1 or less than 0 as well as percentages that are greater than 1 or less than 0. The assumption is that probabilities are in the range [0, 1] and percentages are in the range [0, 100]. Until we know the reason why the values are outside their range, we will not employ datapoints that do not conform to this assumption.
 
 ```{r}
@@ -101,46 +104,37 @@ The belief was that by adopting a zero tolerance approach that enforced even the
 
 # Model 1: only the explanatory variables of key interest
 
-Based on the exploratory data analysis and goal of testing the "broken windows theory", our initial proposed model will include all variables related to stricter law enforcement policies: *prbarr*, *prbconv*, *prbpris*, *avgsen*, and *polpc*. Assuming the "broken windows theory" is valid, we expect generally negative coefficients for all variables.
+Based on the research question, our initial proposed model will include all variables related to stricter law enforcement policies: $prbarr$, $prbconv$, $prbpris$, $avgsen$, and $polpc$. Assuming the "broken windows theory" is valid, we expect generally negative coefficients for all variables.
 
-To make *prbarr*, *prbconv* and *prbpris* interpretation more intuitive to understand, we decided to transform them into percentages, and will use these new variables moving forward.
-```{r}
-data$arrperc = data$prbarr * 100
-data$convperc = data$prbconv * 100
-data$prisperc = data$prbpris * 100
+Given that the histogram of $polpc$ has a significant positive skew, we noted that it would do well to have a log transformation applied to $polpc$ since its values are non-zero and positive. The same can be said about the dependent variable $crmrte$ where its histogram is positively skewed and its values are non-zero and positive. 
+
+```{r out.width="49%", fig.align="center", fig.show="hold"}
+# before and after log transformation
+hist(data$polpc); hist(log(data$polpc))
+hist(data$crmrte); hist(log(data$crmrte))
 ```
 
-In our EDA, we noted that crmrte, prbarr, prbconv, avgsen, and polpc are positively skewed, thus we should consider taking the log. Since the values cannot be negative and have meaningful zero-points, this decision is valid. It is important to remember moving forward that the interpretation of arrperc, and convperc will be in terms of percentage point changes rather than percentage changes.
+Although the marginal distributions of $prbarr$, $prbconv$, and $prbpris$ could benefit from a logit transformation, applying the transformation will make the residuals less normally distributed as seen from the residuals vs fitted values plot. We steered away from taking the log of these variables because it can make the values more extreme. For this reason, we kept $prbarr$, $prbconv$, and $prbpris$ as is for the linear regression model. 
 
-```{r}
-plot.data <- na.omit(data[, sapply(data, is.numeric)])
- ggplot(gather(plot.data), aes(value)) + 
-        facet_wrap(~key, scales="free") + 
-        geom_histogram()
-plot.data <- na.omit(log(data[, sapply(data, is.numeric)]))
- ggplot(gather(plot.data), aes(value)) + 
-        facet_wrap(~key, scales="free") + 
-        geom_histogram()
- 
+```{r out.width="49%", fig.align="center", fig.show="hold"}
+# comparing with and without logit transformation on probability variables
+plot(lm(log(crmrte) ~ logit(prbarr) + logit(prbconv) + logit(prbpris) + avgsen + log(polpc), data=data), 
+     which=1, main="with logit\n")
+plot(lm(log(crmrte) ~ prbarr + prbconv + prbpris + avgsen + log(polpc), data=data), 
+     which=1, main="without logit\n")
 ```
 
+We also kept $avgsen$ as is for easier interpretation. Plus, applying the log on $avgsen$ does not seem to affect the normality of the residual distribution.
+
+For this reason, we propose our first model as follows which contains all explanatory variables of key interest:
+
+$$ log(crmrte) = \beta_0 + \beta_1 \cdot prbarr + \beta_2 \cdot prbconv + \beta_3 \cdot prbpris + \beta_4 \cdot avgsen + \beta_5 \cdot log(polpc) + u $$
+
+We will now run the model and test the validity of the 6 CLM assumptions: 
+
 ```{r}
-scatterplotMatrix(~log(crmrte) + log(arrperc) + log(convperc) + log(polpc) + log(avgsen) + prisperc, data = data)
- + cor(data[, c("crmrte", "arrperc", "convperc", "polpc", "avgsen", "prisperc")])
- + cor(data[!(names(data) %in% c("X", "county", "year"))], use = "complete.obs")
+m1 <- lm(log(crmrte) ~ prbarr + prbconv + prbpris + avgsen + log(polpc), data=data)
 ```
-Looking at the relationships between crmrte (y) and the newly transformed x variables, it appears that the relationships are linear and we can continue with our proposed multiregression model.
-
-The model:
-
-$$ log(crmrte) = \beta_0 + \beta_1log(arrperc) + \beta_2log(convperc) + \beta_3(prisperc) + \beta_4log(avgsen) + \beta_5log(polpc) + \mu $$
-
-We will now run the model and test the validity of the 6 CLM assumptions:
-```{r}
-m1 = lm(log(crmrte) ~ log(arrperc) + log(convperc) + prisperc + log(avgsen) + log(polpc), data=data)
-
-```
-
 
 ## CLM 1 - A linear model
 
@@ -266,21 +260,6 @@ The histograms of the residuals have a negative skew, and QQ-plots further demon
 
 Is the assumption valid? **No**
 Response: 
-
-# Model 2: add covariates that increase accuracy without bias
-
-crmrte ~ avgsen + prbarr + prbconv + prbpris + polpc
-
-```{r}
-hist(data$avgsen)
-hist(data$prbarr)
-hist(data$prbconv)
-hist(data$prbpris)
-hist(data$polpc)
-```
-
-
-
 
 # References:
 "Shattering "Broken Windows": An Analysis of San Francisco’s Alternative Crime Policies", CENTER ON JUVENILE AND CRIMINAL JUSTICE, October 1999 http://www.cjcj.org/uploads/cjcj/documents/shattering.pdf
