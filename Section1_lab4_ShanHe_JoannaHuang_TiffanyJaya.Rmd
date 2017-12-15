@@ -272,7 +272,11 @@ accuracy of your results without introducing bias (for example, you should not i
 that will absorb some of the causal effect you are interested in). This model should strike a balance
 between accuracy and parsimony and reflect your best understanding of the determinants of crime. 
 
-# Model 3
+=======
+# Model 3: most, if not all, other covariates
+
+Adding arbitrary variables uses up valuable degrees of freedom which increases the standard error which in turn reduces the precision of this estimate. This effect is especially pronounced in small sample size. 
+
 One model that includes the previous covariates, and most, if not all, other covariates. A key purpose
 of this model is to demonstrate the robustness of your results to model specification.
 
@@ -336,6 +340,13 @@ library(sandwich)
 # To address heteroskedasticity, we use robust standard errors.
 coeftest(m3, vcov = vcovHC)
 ```
+
+# Summary of Models
+
+# Discussion of Causality
+
+# Conclusion
+>>>>>>> 7fd17e4bc07a980522a0ed9f96e0e16808776ec9
 
 # References:
 "Shattering "Broken Windows": An Analysis of San Francisco’s Alternative Crime Policies", CENTER ON JUVENILE AND CRIMINAL JUSTICE, October 1999 http://www.cjcj.org/uploads/cjcj/documents/shattering.pdf
