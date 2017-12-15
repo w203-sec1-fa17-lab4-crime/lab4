@@ -252,9 +252,9 @@ The first step in doing so is to choose covariates that are positively correlate
 ind.vars.names <- c("prbarr", "prbconv", "prbpris", "avgsen", "polpc", "log.polpc")
 ind.vars <- subset(data, select=ind.vars.names)
 other.vars <- subset(data, select=!names(data) %in% c(ind.vars.names, "X", "county", "year", "crmrte"))
-cor(ind.vars, other.vars)
+cm <- as.data.frame(as.table(cor(ind.vars, other.vars)))
+cm[order(-abs(cm$Freq)),]
 ```
-
 
 # Model 3: most, if not all, other covariates
 
