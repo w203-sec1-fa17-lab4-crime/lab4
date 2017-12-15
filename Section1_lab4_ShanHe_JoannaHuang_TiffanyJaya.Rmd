@@ -39,7 +39,10 @@ colSums(sapply(data, is.na))
 
 The dataset contains 90 counties from North Carolina, all of which is collected in 1987. Out of the 90 counties, 21 are from western NC (out of which 1 is also urban), 34 are from central NC (out of which 5 is also urban), and 8 are considered urban counties. There are no missing values which will make our analysis easier.
 
-There are some probabilities in the dataset that are greater than 1 or less than 0 as well as percentages that are greater than 1 or less than 0. The assumption is that probabilities are in the range [0, 1] and percentages are in the range [0, 100]. Until we know the reason why the values are outside their range, we will retain these values in our models.
+```{r}
+summary(data)
+```
+Most of the variables appear to be within a reasonable range, except for *prbarr* and *prbconv*, which appear to have  probability values greater than 1. Until we know the reason why the values are outside their range, we will retain these values in our models.
 
 ```{r}
 # list number of probabilities (prbarr, prbconv, prbpris, mix) that are not in range [0, 1]
