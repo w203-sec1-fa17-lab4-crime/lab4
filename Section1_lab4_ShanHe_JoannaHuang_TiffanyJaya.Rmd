@@ -173,7 +173,7 @@ plot(m1, which=c(1, 5))
 
 The residual vs fitted plot indicates little evidence that the zero-conditional mean assumption does not hold since the red spline line remains close to zero despite its slight dip and rise at both ends due to fewer observations.
 
-Furthermore, it does not appear that the outliers have undue influence on the model fit. Based on the residual vs leverage plot, the oultiers have considerable leverage on the regression but none exceeds a Cook's distance of 1. 
+Furthermore, it does not appear that the outliers have undue influence on the model fit. Based on the residual vs leverage plot, none of the outliers have a leverage that exceeds a Cook's distance of 1 on the regression model. 
 
 We have also taken a look at the covariances of the independent variables with the residuals to see if the variables we chose are likely to be exogenous. 
 
