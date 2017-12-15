@@ -241,5 +241,28 @@ nobs(m1)
 
 Although the assumption is not met, given the substantial sample size, we can be confident that due to OLS asymptotics the distribution of the residuals will be approximately normal. 
 
+# Model 2: add covariates that increase accuracy without bias
+
+Omitted variable bias can cause significant independent variables to appear insignificant. In developing model 2, we add more variables in the hope that the the explanatory variables of key interest may become significant. 
+
+The first step in doing so is to choose covariates that are positively correlated to the explanatory variables of key interest in model 1. The reason why we want to do this is because we do not want to overstate the effect of a particular variable. For example, if variable A and B are positively correlated and B has an independent effect on A, then a regression that omits B will overstate the effect of A. 
+
+# Model 3: most, if not all, other covariates
+
+# Summary of Models
+
+```
+stargazer(m1, m2, m3, type="latex")
+title="Linear Models Predicting Log of Crime Rate"
+se = list(se.m1, se.m2, se.m3, omit.stat=c("f", "ser"), 
+          star.cutoffs=c(0.05, 0.01, 0.001))
+```
+
+
+# Discussion of Causality
+
+# Conclusion
+
+
 # References:
 "Shattering "Broken Windows": An Analysis of San Francisco’s Alternative Crime Policies", CENTER ON JUVENILE AND CRIMINAL JUSTICE, October 1999 http://www.cjcj.org/uploads/cjcj/documents/shattering.pdf
