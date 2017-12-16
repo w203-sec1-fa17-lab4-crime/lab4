@@ -331,6 +331,13 @@ bptest(m3)
 
 violation of zero-conditional mean & homoskedasticity, potentially due to lack of data points in the negative and postive directions. 
 
+
+```{r}
+vif(m3)
+```
+
+Looking at the variance inflation factors, we don't see any variable with high (>10) vif, meaning that we don't have high multi-collinearity in our model.
+
 ```{r}
 # To address heteroskedasticity, we use robust standard errors.
 coeftest(m3, vcov = vcovHC)
@@ -348,10 +355,6 @@ stargazer(m3, type = "text", omit.stat = "f",
 ``` 
 
 According to the hypothesis tests using the heteroskedasticity-robust standard errors, we can see that variables xxx, xxx... show strong statistical significance. And according to the slope coefficients, we have ceteris paribus interpretation of xx, xxx, which shows strong pratical significance.   
-
-```{r}
-vif(m3)
-```
 
 # Summary of Models
 
