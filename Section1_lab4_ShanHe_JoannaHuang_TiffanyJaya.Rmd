@@ -11,6 +11,9 @@ library(ggplot2) # ggplot
 library(moments) # skewness
 library(outliers) # outlier
 library(tidyr) # gather
+library(stargazer) # stargazer for regression table
+library(lmtest) # coefficient hypothesis test 
+library(sandwich) # vcovHC heteroskedasticity-robust standard error
 # prevent scientific notation, specifically used in outliers package
 options(scipen=999)
 ```
@@ -284,12 +287,7 @@ of this model is to demonstrate the robustness of your results to model specific
 # EDA for variables that shouldn't be included
 unique(cbind(data$west, data$central))
 ```
-Note that although we don't have any counties that are both in west and central, as expected, we see some counties that neither in west or central. In order to consider the effect on different regions, we need to create another column that has 1 when the county isn't in the west or central and 0 when it is west or central.  
-
-```{r}
-# create indicator variable other_region
-data$other_region <- ifelse(data$west + data$central == 1, 0, 1)
-```
+Note that although we don't have any counties that are both in west and central, as expected, we see some counties that neither in west or central. In order to consider the effect on different regions, we will need to use both indicator variables in our model. 
 
 ```{r}
 summary(data[(names(data) %in% c("wcon", "wtuc", "wtrd", "wfir", "wser", "wmfg", "wfed", "wsta", "wloc", "pctmin80", "mix", "pctymle"))])
@@ -313,7 +311,6 @@ for(col in names(data[(names(data) %in% c("wcon", "wtuc", "wtrd", "wfir", "wser"
 
 We notice that the distributions for the variables $wtrd$, $wfir$, $wser$, $wmfg$, $wloc$, $mix$ are positively skewed, since they are all postive values, we can apply log transformations to all of them. For the ease of the intepretation of the model, we apply log tranformation to the other wage related variables as well.
 
-
 ```{r}
 for(col in names(data[(names(data) %in% c("wcon", "wtuc", "wtrd", "wfir", "wser", "wmfg", "wfed", "wsta", "wloc", "mix"))]))
 {
@@ -323,7 +320,7 @@ for(col in names(data[(names(data) %in% c("wcon", "wtuc", "wtrd", "wfir", "wser"
 
 Hence, we will propose the following model to include all the covariates:
 ```{r}
-m3 <- lm(log(crmrte) ~ prbarr + prbconv + prbpris + avgsen + log(polpc) + density + taxpc + west + central + other_region + urban + pctmin80 + log(wcon)
+m3 <- lm(log(crmrte) ~ prbarr + prbconv + prbpris + avgsen + log(polpc) + density + taxpc + west + central + urban + pctmin80 + log(wcon)
          + log(wtuc) + log(wtrd) + log(wfir) + log(wser) + log(wmfg) + log(wfed) + log(wsta) + log(wloc) + log(mix) + pctymle, data=data)
 ```
 
@@ -332,13 +329,28 @@ plot(m3)
 bptest(m3)
 ```
 
-violation of zero-conditional mean & homoskedasticity due to one data point. 
+violation of zero-conditional mean & homoskedasticity, potentially due to lack of data points in the negative and postive directions. 
 
 ```{r}
-library(lmtest) 
-library(sandwich)
 # To address heteroskedasticity, we use robust standard errors.
 coeftest(m3, vcov = vcovHC)
+```
+
+```{r}
+#compute standard errors for model 3 for regression table
+(se.m3 = sqrt(diag(vcovHC(m3))))
+
+# We pass the standard errors into stargazer through 
+# the se argument.
+stargazer(m3, type = "text", omit.stat = "f",
+          se = list(se.m3),
+          star.cutoffs = c(0.05, 0.01, 0.001))
+``` 
+
+According to the hypothesis tests using the heteroskedasticity-robust standard errors, we can see that variables xxx, xxx... show strong statistical significance. And according to the slope coefficients, we have ceteris paribus interpretation of xx, xxx, which shows strong pratical significance.   
+
+```{r}
+vif(m3)
 ```
 
 # Summary of Models
