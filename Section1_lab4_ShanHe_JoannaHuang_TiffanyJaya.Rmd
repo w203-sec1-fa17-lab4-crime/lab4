@@ -12,13 +12,17 @@ library(lmtest) # bptest
 library(moments) # skewness
 library(outliers) # outlier
 library(tidyr) # gather
+library(sandwich)
+library(stargazer)
 # prevent scientific notation, specifically used in outliers package
 options(scipen=999)
 ```
 
 # Introduction
 
-The purpose of this report is to generate policy suggestions based on our understanding of the determinants of crime in North Carolina in 1987. We will list out the limitations of our analysis, including any estimates that suffer from endogeneity bias.
+This year, on October 18, 2017, Law Enforcement Leaders urged Attorney General Jeff Sessions to reconsider his stance on reverting back to "overly punitive" approaches of the 1980s and 1990s to reduce crime. Since President Trump believes that America is in the midst of a national crime wave, Sessions thought a more conservative approach of deterrence through arrests, incapacitation through imprisonment, harsh sentencing and higher police per capita would lead to lower crime rates overall. However, police chiefs who have first hand decades of experience on the front lines learned that these tactics are ineffective to reduce crime. 
+
+In this paper, we will explore whether the conservative approach to crime effectively reduce crime rates. We began by exploring North Carolina's crime dataset of 1987 when "overly punitive" approaches of the 1980s and 1990s would have taken place and analyzed the determinants of crime based on the research question: Does the conservative approach of deterrence through arrests, incapacitation through imprisonment, harsh sentencing and higher police per capita lead to lower crime rates? We will list out the limitations of our analysis, including any estimates that suffer from endogeneity bias, and generate policy suggestions based on our findings.
 
 # Exploratory Data Analysis
 
@@ -42,17 +46,16 @@ The dataset contains 90 counties from North Carolina, all of which is collected 
 ```{r}
 summary(data)
 ```
-Most of the variables appear to be within a reasonable range, except for *prbarr* and *prbconv*, which appear to have  probability values greater than 1. Until we know the reason why the values are outside their range, we will retain these values in our models.
+
+Most of the variables appear to be within a reasonable range, except for $prbarr$ and $prbconv$, which have probability values greater than 1. 
 
 ```{r}
 # list number of probabilities (prbarr, prbconv, prbpris, mix) that are not in range [0, 1]
 c(sum(data$prbarr < 0 | 1 < data$prbarr), sum(data$prbconv < 0 | 1 < data$prbconv),
   sum(data$prbpris < 0 | 1 < data$prbpris), sum(data$mix < 0 | 1 < data$mix))
-# list number of percentages (pctymle, pctmin80) that are not in range [0, 100]
-c(sum(data$pctymle < 0 | 100 < data$pctymle), sum(data$pctmin80 < 0 | 100 < data$pctmin80))
 ```
 
-$prbarr$ and $prbconv$ contain 1 and 10 datapoints respectively that do not conform to the probability assumption.
+$prbarr$ and $prbconv$ contain 1 and 10 datapoints respectively that do not conform to the probability assumption. We will take these outliers into consideration when choosing variables for our models.
 
 We then plot each numeric variable in a histogram to see its sample distribution.
 
@@ -86,11 +89,13 @@ table(county.ids)
 outlier(num.data)
 ```
 
-One outlier that is interesting to note is that the weekly wage in the service industry for county with id 185 is \$2177.10, which is approximately eight times higher than the median. We do not know if the value is inputted incorrectly or if the county in general is making a weekly wage of \$2177.10 in the service industry.
+One outlier that is interesting to note is the weekly wage in the service industry for county with id 185,  \$2177.10. 
 
 ```{r}
 summary(data$wser)
 ```
+
+It is approximately eight times higher than the median. We do not know if the value is inputted incorrectly or if the county in general is making a weekly wage of \$2177.10 in the service industry.
 
 # Research Question
 
@@ -244,5 +249,22 @@ nobs(m1)
 
 Although the assumption is not met, given the substantial sample size, we can be confident that due to OLS asymptotics the distribution of the residuals will be approximately normal. 
 
+# Conclusion: 
+
+TODO: These are notes for policy suggestions
+
+Read more on http://lawenforcementleaders.org/wp-content/uploads/2017/10/Law-Enforcement-Letter-to-President-Trump-and-Attorney-General-Sessions.pdf
+
+this effort is undercut by a diffuse focus. Attorney General Sessions’ regular statements encouraging law enforcement to focus on drug and nonviolent offenders divert officers away from that vital mission. Law enforcement resources are limited. Focusing on low-level non-violent offenders means less time to stop and bring to justice the most dangerous offenders.
+
+From our experience, we do not believe that always seeking the longest possible sentence will make
+our country safer. More than 25 percent of the Justice Department’s budget is consumed by federal
+prisons.[iv] Every unnecessary dollar spent on prisons is a dollar not spent on policing. And often, the
+best way to prevent recidivism is through treatment, not prison. Responsibly reducing incarceration
+will free funding and time for our officers to focus on targeting and preventing violent crime,
+making our streets safer.[v]
+
 # References:
 "Shattering "Broken Windows": An Analysis of San Francisco’s Alternative Crime Policies", CENTER ON JUVENILE AND CRIMINAL JUSTICE, October 1999 http://www.cjcj.org/uploads/cjcj/documents/shattering.pdf
+
+Jackman, Tom. “Nation's top cops, prosecutors urge Trump not to roll back successful crime policies.” The Washington Post, WP Company, 18 Oct. 2017, www.washingtonpost.com/news/true-crime/wp/2017/10/18/nations-top-cops-prosecutors-urge-trump-not-to-roll-back-successful-crime-policies/?utm_term=.53fb295eac1e.
