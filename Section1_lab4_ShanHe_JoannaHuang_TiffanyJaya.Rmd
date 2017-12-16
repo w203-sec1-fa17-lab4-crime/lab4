@@ -247,7 +247,7 @@ Omitted variable bias can cause significant independent variables to appear insi
 
 The first step in doing so is to choose covariates that are positively correlated to the explanatory variables of key interest in model 1. The reason why we want to do this is because we do not want to overstate the effect of a particular variable. For example, if variable A and B are positively correlated and B has an independent effect on A, then a regression that omits B will overstate the effect of A. 
 
-```{r}
+```{r out.width="49%"}
 # explanatory variables in model 1
 ind.vars.names <- c("prbarr", "prbconv", "prbpris", "avgsen", "polpc", "log.polpc")
 # other variables not in model 1 with X, county, year, and crmrte exempted
