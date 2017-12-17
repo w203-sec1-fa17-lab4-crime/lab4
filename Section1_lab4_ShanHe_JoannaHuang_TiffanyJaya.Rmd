@@ -280,13 +280,80 @@ Since all six assumptions of the Classical Linear Model are met, we can assume t
 
 # Model 2: add covariates that increase accuracy without bias
 
+For Model 2, we decided to include variables that have an indirect impact to crime rate: $density$, $tax$, and $mix$. 
+
+We chose $density$ based on the theory that the more densely populated an area is, the harder it is for individuals to commit crime, which in turn decreases the crime rate. We assumed that if we included $density$ on top of the regression model we defined in Model 1, its coefficient will be negative since it has a negative relationship with $crime$ and a positive relationship, in general, with the other explanatory variables as shown below.
+
+```{r}
+# list the correlation between density and model 1's explanatory variables
+cor(subset(data, select="density"), subset(data, select=c("probarr", "probconv", "probsen", "avgsen", "log.police")))
+```
+
+Although $density$ has a direct relationship with $urban$, we decided to not include $urban$ because there are other factors, such as wage discrepancy between the wealthy and the poor tbat potentially exists in urban counties which the current dataset could not support. In other words, by including $urban$, we might fall prey to the omitted variable bias because there are potentially multiple variables that has an affect with $urban$ that the curent dataset do not support.
+
+
+
+potentially exist affects the $urban$ variable that the current dataset 
+
+We chose tax revenue per capita, $tax$, on a similar basis as $density$ in that higher tax revenue usually equates to more funding for protection services and therefore lowers the rate of crime. 
+
+
+We decided to add $taxpc$ into the model because higher tax revenue usually equates to more funding for protection services. The assumption is that with inadequate protections, crime will infiltrate and exploit the weaknesses. 
+
+```{r}
+cor(subset(data, select="tax"), subset(data, select=c("probconv", "probsen", "avgsen")))
+```
+
+```{r}
+m <- lm(crime ~ probconv + probsen + avgsen + tax, data=data)
+m
+coeftest(m, vcov=vcovHC)
+```
+```{r}
+cor(subset(data, select="density"), subset(data, select=c("probconv", "probsen", "avgsen")))
+
+m <- lm(crime ~ probconv + probsen + avgsen + density, data=data)
+m
+coeftest(m, vcov=vcovHC)
+```
+
+```{r}
+cor(data$crime, data$mix)
+```
+
+
+
+```{r out.width="49%"}
+# explanatory variables in model 1
+ind.vars.names <- c("probconv", "probsen", "avgsen")
+# other variables not in model 1 with X, county, year, and crmrte exempted
+other.vars <- subset(data, select=!names(data) %in% c(ind.vars.names, "X", "county", "year", "crime", "probarr", "polpc"))
+
+# iterate through each explanatory variables and 
+# create a correlation matrix against other variables of potential interest
+lapply(ind.vars.names, function(ind.var.name) {
+  ind.var <- subset(data, select=ind.var.name)
+  # reformat so that explanatory variable is in column 1, other variable in column 2, 
+  # and correlation value in column 3
+  cm <- as.data.frame(as.table(cor(ind.var, other.vars)))
+  # order them in ascending order
+  cm.order <- cm[order(-cm$Freq),]
+  # list the top 5 positive correlation and top 5 negative correlation
+  list(head(cm.order, n=5), tail(cm.order, n=5))
+})
+```
+
+```{r}
+m2 <- lm(log(crime) ~ probconv + probsen + avgsen + density + tax)
+```
+
 Omitted variable bias can cause significant independent variables to appear insignificant. In developing model 2, we add more variables in the hope that the the explanatory variables of key interest may become significant. 
 
 The first step in doing so is to choose covariates that are positively correlated to the explanatory variables of key interest in model 1. The reason why we want to do this is because we do not want to overstate the effect of a particular variable. For example, if variable A and B are positively correlated and B has an independent effect on A, then a regression that omits B will overstate the effect of A. 
 
-#```{r out.width="49%"}
+```{r out.width="49%"}
 # explanatory variables in model 1
-ind.vars.names <- c("prbarr", "prbconv", "prbpris", "avgsen", "polpc", "log.polpc")
+ind.vars.names <- c("probarr", "probconv", "probsen", "avgsen", "log.police")
 # other variables not in model 1 with X, county, year, and crmrte exempted
 other.vars <- subset(data, select=!names(data) %in% c(ind.vars.names, "X", "county", "year", "crmrte"))
 
@@ -302,7 +369,7 @@ lapply(ind.vars.names, function(ind.var.name) {
   # list the top 5 positive correlation and top 5 negative correlation
   list(head(cm.order, n=5), tail(cm.order, n=5))
 })
-#```
+```
 
 
 
