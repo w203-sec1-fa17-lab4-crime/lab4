@@ -306,6 +306,12 @@ se = list(se.m1, se.m2, se.m3, omit.stat=c("f", "ser"),
           star.cutoffs=c(0.05, 0.01, 0.001))
 ```
 
+# Discussion of Endogeneity Bias
+
+There are three types of bias that consitutes the endogeneity bias: omitted variable bias, reverse causality, and measurement error which can confound the results of our analysis. 
+
+In Model 1, we have discussed the potential issue of omitted variable bias by deciding not to include $probconv$ and $probsen$ variables due to their outliers. 
+
 # Discussion of Causality
 
 # Conclusion: 
