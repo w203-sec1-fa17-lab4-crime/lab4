@@ -26,7 +26,7 @@ The purpose of this report is to generate policy suggestions based on our unders
 
 ```{r}
 # load the data
-data <- read.csv("crime.csv")
+data <- read.csv("crime_v2_updated.csv")
 # verify that it only contains data from 1987
 unique(data$year)
 # list number of counties
