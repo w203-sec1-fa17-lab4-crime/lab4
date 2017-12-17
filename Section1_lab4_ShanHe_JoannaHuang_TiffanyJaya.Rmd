@@ -12,8 +12,8 @@ library(lmtest) # bptest
 library(moments) # skewness
 library(outliers) # outlier
 library(tidyr) # gather
-library(sandwich)
-library(stargazer)
+library(sandwich) # vcovHC
+library(stargazer) # stargazer
 # prevent scientific notation, specifically used in outliers package
 options(scipen=999)
 ```
@@ -22,13 +22,13 @@ options(scipen=999)
 
 This year, on October 18, 2017, Law Enforcement Leaders urged Attorney General Jeff Sessions to reconsider his stance on reverting back to "overly punitive" approaches of the 1980s and 1990s to reduce crime. Since President Trump believes that America is in the midst of a national crime wave, Sessions thought a more conservative approach of deterrence through arrests, incapacitation through imprisonment, harsh sentencing and higher police per capita would lead to lower crime rates overall. However, police chiefs who have first hand decades of experience on the front lines learned that these tactics are ineffective to reduce crime. 
 
-In this paper, we will explore whether the conservative approach to crime effectively reduce crime rates. We began by exploring North Carolina's crime dataset of 1987 when "overly punitive" approaches of the 1980s and 1990s would have taken place and analyzed the determinants of crime based on the research question: Does the conservative approach of deterrence through arrests, incapacitation through imprisonment, harsh sentencing and higher police per capita lead to lower crime rates? We will list out the limitations of our analysis, including any estimates that suffer from endogeneity bias, and generate policy suggestions based on our findings.
+In this paper, we will explore whether the conservative approach to crime effectively reduce crime rates. We began by exploring North Carolina's crime dataset of 1988 when "overly punitive" approaches of the 1980s and 1990s would have taken place and analyzed the determinants of crime based on the research question: Does the conservative approach of deterrence through arrests, incapacitation through imprisonment, harsh sentencing and higher police per capita lead to lower crime rates? We will list out the limitations of our analysis, including any estimates that suffer from endogeneity bias, and generate policy suggestions based on our findings.
 
 # Exploratory Data Analysis
 
 ```{r}
 # load the data
-data <- read.csv("crime.csv")
+data <- read.csv("crime_v2_updated.csv")
 # verify that it only contains data from 1987
 unique(data$year)
 # list number of counties
@@ -41,21 +41,21 @@ c(sum(data$west == 1 & data$urban == 1), sum(data$central == 1 & data$urban == 1
 colSums(sapply(data, is.na))
 ```
 
-The dataset contains 90 counties from North Carolina, all of which is collected in 1987. Out of the 90 counties, 21 are from western NC (out of which 1 is also urban), 34 are from central NC (out of which 5 is also urban), and 8 are considered urban counties. There are no missing values which will make our analysis easier.
+The dataset contains 90 counties from North Carolina, all of which is collected in 1988. Out of the 90 counties, 34 are from western NC (out of which 5 is also urban), 21 are from central NC (out of which 1 is also urban), and 8 are considered urban counties. There are no missing values which will make our analysis easier.
 
 ```{r}
 summary(data)
 ```
 
-Most of the variables appear to be within a reasonable range, except for $prbarr$ and $prbconv$, which have probability values greater than 1. 
+Most of the variables appear to be within a reasonable range, except for $probarr$ and $probconv$, which have probability values greater than 1. 
 
 ```{r}
-# list number of probabilities (prbarr, prbconv, prbpris, mix) that are not in range [0, 1]
-c(sum(data$prbarr < 0 | 1 < data$prbarr), sum(data$prbconv < 0 | 1 < data$prbconv),
-  sum(data$prbpris < 0 | 1 < data$prbpris), sum(data$mix < 0 | 1 < data$mix))
+# list number of probabilities (probarr, probconv, probsen, mix) that are not in range [0, 1]
+c(sum(data$probarr < 0 | 1 < data$probarr), sum(data$probconv < 0 | 1 < data$probconv),
+  sum(data$probsen < 0 | 1 < data$probsen), sum(data$mix < 0 | 1 < data$mix))
 ```
 
-$prbarr$ and $prbconv$ contain 1 and 10 datapoints respectively that do not conform to the probability assumption. We will take these outliers into consideration when choosing variables for our models.
+$probconv$ and $probsen$ contain 10 and 1 datapoints respectively that do not conform to the probability assumption. We will take these outliers into consideration when choosing variables for our models.
 
 We then plot each numeric variable in a histogram to see its sample distribution.
 
@@ -92,7 +92,7 @@ outlier(num.data)
 One outlier that is interesting to note is the weekly wage in the service industry for county with id 185,  \$2177.10. 
 
 ```{r}
-summary(data$wser)
+summary(data$wageser)
 ```
 
 It is approximately eight times higher than the median. We do not know if the value is inputted incorrectly or if the county in general is making a weekly wage of \$2177.10 in the service industry.
@@ -110,39 +110,54 @@ The belief was that by adopting a zero tolerance approach that enforced even the
 
 # Model 1: only the explanatory variables of key interest
 
-Based on the research question, our initial proposed model will include $crmrte$ as the dependent variable and all variables related to stricter law enforcement policies: $prbarr$, $prbconv$, $prbpris$, $avgsen$, and $polpc$ as independent variables. Assuming the "broken windows theory" is valid, we expect generally negative coefficients for all variables.
+Based on the research question, our initial proposed model will include $crime$ as the dependent variable and all variables related to stricter law enforcement policies: $probarr$, $probconv$, $probsen$, $avgsen$, and $police$ as independent variables. Assuming the "broken windows theory" is valid, we expect generally negative coefficients for all variables.
 
-Given that the histogram of $crmrte$ has a significant positive skew, we noted a log transformation may be suitable since its values are non-zero and positive. The same can be said about the independent variable $polpc$ where its histogram is positively skewed and its values are non-zero and positive.
+Given that the histogram of $crime$ has a significant positive skew, we noted a log transformation may be suitable since its values are non-zero and positive. The same can be said about the independent variable $police$ where its histogram is positively skewed and its values are non-zero and positive.
 
 ```{r out.width="49%", fig.align="center", fig.show="hold"}
 # before and after log transformation
-hist(data$crmrte); hist(log(data$crmrte))
-hist(data$polpc); hist(log(data$polpc))
+hist(data$crime); hist(log(data$crime))
+hist(data$police); hist(log(data$police))
 ```
 
-Though $prbarr$, $prbconv$, and $prbpris$ are positively skewed as well, we decided against taking the log of these variables because log transformations can make values between 0 and 1 more extreme. We also kept $avgsen$ as is for easier interpretation. 
+Though $probarr$, $probconv$, and $probsen$ are positively skewed as well, we decided against taking the log of these variables because log transformations can make values between 0 and 1 more extreme. We also kept $avgsen$ as is for easier interpretation. 
 
 Next, we want to check the relationships between the chosen independent variables and our dependent variable, before and after transformations. We want to ensure that we did not deviate any straight-line relationships between the independent variables and the dependent variable using the transformation.
 
 ```{r}
-scatterplotMatrix(~ crmrte + log(crmrte) + prbarr + prbconv + prbpris + avgsen + polpc + log(polpc), data = data)
+scatterplotMatrix(~ crime + log(crime) + probarr + probconv + probsen + avgsen + police + log(police), data = data)
 ```
 
 As we can see from the scatterplot matrix, it does not appear that the transformation drastically changed the relationship.
 
+Lastly, based on the exploratory data analysis, we should be careful when considering $probconv$ and $probsen$ as variables in the model with 10 and 1 datapoints respectively that have probabilties greater than 1. $probconv$ is proxied by the ratio of convictions to arrest while $probsen$ is proxied by the proportion of total convictions resulting in prison sentences. Although it is unlikely that an individual can be convicted without an arrest or sentenced without a conviction, we cannot rule out the possibility. Both of these variables are important in answering our research question and removing them will result in an omitted variable bias. We understand that including them might compromise the model with a confounding bias, but without them, we cannot fulfill the zero-conditional mean assumption and therefore cannot be said that the OLS estimators are consistent, normally distributed and BLUE.
+
+```{r out.width="49%", fig.align="center", fig.show="hold"}
+model.with <- lm(log(crime) ~ probarr + probconv + probsen + avgsen + log(police), data=data)
+model.without <- lm(log(crime) ~ probsen + avgsen + log(police), data=data)
+# compare residual vs fitted plot
+plot(model.with, which=1, main="with probconv and probsen\n")
+plot(model.without, which=1, main="without probconv and probsen\n")
+# compare residual vs leverage plot
+plot(model.with, which=5, main="with probconv and probsen\n")
+plot(model.without, which=5, main="without probconv and probsen\n")
+```
+
+
+
 Hence, we propose our first model as follows which contains all explanatory variables of key interest:
 
-$$ log(crmrte) = \beta_0 + \beta_1 \cdot prbarr + \beta_2 \cdot prbconv + \beta_3 \cdot prbpris + \beta_4 \cdot avgsen + \beta_5 \cdot log(polpc) + u $$
+$$ log(crime) = \beta_0 + \beta_1 \cdot probarr + \beta_2 \cdot probconv + \beta_3 \cdot probsen + \beta_4 \cdot avgsen + \beta_5 \cdot log(police) + u $$
 
 We will now run the model and test the validity of the 6 CLM assumptions:
 
 ```{r}
-m1 <- lm(log(crmrte) ~ prbarr + prbconv + prbpris + avgsen + log(polpc), data=data)
+m1 <- lm(log(crime) ~ probarr + probconv + probsen + avgsen + log(police), data=data)
 ```
 
 ## CLM 1 - A linear model
 
-The model is specified such that the dependent variable is a linear function of the explanatory variables. As shown in the scatterplot matrix above, all of the dependent variables in the model seem to have a linear relationship with the independent variable $log(crmrte)$. We can verify further the linearity of the relationship using either component+residual plots (also called partial-residual plots) or the CERES plots. We have decided to do the former and note that for the most part, the relationships appear linear.
+The model is specified such that the dependent variable is a linear function of the explanatory variables. As shown in the scatterplot matrix above, all of the dependent variables in the model seem to have a linear relationship with the independent variable $log(crime)$. We can verify further the linearity of the relationship using either component+residual plots (also called partial-residual plots) or the CERES plots. We have decided to do the former and note that for the most part, the relationships appear linear.
 
 ```{r}
 # verify linearity of relationships using component+residual plots
@@ -151,7 +166,7 @@ crPlots(m1)
 
 ## CLM 2 - Random Sampling
 
-We do not know how the survey is collected. We assume that the variables are representative of the entire population distribution, but we cannot assess this assumption perfectly. Since there is a possibility that the individuals who collect the survey reach out to only one municipal police department instead of the county police department, the data collected this way are not representative of the county. There is nothing we can do to correct this, so we note this as a potential weakness in the analysis.
+We do not know how the survey is collected. We assume that the variables are representative of the entire population distribution since the counties are subsets of North Carolina. There is nothing we can do to correct this, so we note this as a potential weakness in the analysis. 
 
 ## CLM 3 - Multicollinearity
 
@@ -159,13 +174,13 @@ As a quick test of the multicollinearity condition, we check the correlation of 
 
 ```{r}
 # correlation matrix of explanatory variables
-data$log.polpc <- log(data$polpc)
-cor(data.matrix(subset(data, select=c("prbarr", "prbconv", "prbpris", "avgsen", "polpc", "log.polpc"))))
+data$log.police <- log(data$police)
+cor(data.matrix(subset(data, select=c("probarr", "probconv", "probsen", "avgsen", "police", "log.police"))))
 # verify VIFs are less than 10
 vif(m1)
 ```
 
-The explanatory variables ($prbarr$, $prbconv$, $prbpis$, $avgsen$, $log.polpc$) are not perfectly correlated and the VIFs are low (i.e. less than 10), so there is no perfect multicollinearity of the independent variables.
+The explanatory variables ($probarr$, $probconv$, $prbpis$, $avgsen$, $log.police$) are not perfectly correlated and the VIFs are low (i.e. less than 10), so there is no perfect multicollinearity of the independent variables.
 
 ## CLM 4 – Zero-Conditional Mean
 
@@ -184,7 +199,7 @@ We have also taken a look at the covariances of the independent variables with t
 
 ```{r}
 # calculate the covariance for each independent variables with the model's residuals
-lapply(subset(data, select=c("prbarr", "prbconv", "prbpris", "avgsen", "log.polpc")),  
+lapply(subset(data, select=c("probarr", "probconv", "probsen", "avgsen", "log.police")),  
       function(var) cov(var, m1$residuals))
 ```
 
@@ -222,7 +237,7 @@ For this reason, the assumption of homoskedasticity is met.
 
 ##CLM 6 – Normality of residuals
 
-To determine whether there is normality of the residuals, we looked at the histogram and the QQ-plot of the residuals and visually observe whether there is normality.
+To determine whether there is normality of the residuals, we looked at the histogram and the Q-Q plot of the residuals and visually observe whether there is normality.
 
 ```{r out.width="49%", fig.align="center", fig.show="hold"}
 # normality of standard residuals
@@ -248,6 +263,8 @@ nobs(m1)
 ```
 
 Although the assumption is not met, given the substantial sample size, we can be confident that due to OLS asymptotics the distribution of the residuals will be approximately normal. 
+
+Since all six assumptions of the Classical Linear Model are met, we can assume that the OLS estimators are consistent, normally distributed and BLUE.
 
 # Conclusion: 
 
