@@ -125,25 +125,37 @@ Though $probarr$, $probconv$, and $probsen$ are positively skewed as well, we de
 Next, we want to check the relationships between the chosen independent variables and our dependent variable, before and after transformations. We want to ensure that we did not deviate any straight-line relationships between the independent variables and the dependent variable using the transformation.
 
 ```{r}
-scatterplotMatrix(~ crime + log(crime) + probarr + probconv + probsen + avgsen + police + log(police), data = data)
+scatterplotMatrix(~ crime + log(crime) + 
+                    probarr + probconv + probsen + avgsen + police + log(police), data = data)
 ```
 
 As we can see from the scatterplot matrix, it does not appear that the transformation drastically changed the relationship.
 
-Lastly, based on the exploratory data analysis, we should be careful when considering $probconv$ and $probsen$ as variables in the model with 10 and 1 datapoints respectively that have probabilties greater than 1. $probconv$ is proxied by the ratio of convictions to arrest while $probsen$ is proxied by the proportion of total convictions resulting in prison sentences. Although it is unlikely that an individual can be convicted without an arrest or sentenced without a conviction, we cannot rule out the possibility. Both of these variables are important in answering our research question and removing them will result in an omitted variable bias. We understand that including them might compromise the model with a confounding bias, but without them, we cannot fulfill the zero-conditional mean assumption and therefore cannot be said that the OLS estimators are consistent, normally distributed and BLUE.
+Lastly, based on the exploratory data analysis, we should be careful when considering $probconv$ and $probsen$ as variables in the model with 10 and 1 datapoints respectively that have probabilties greater than 1. $probconv$ is proxied by the ratio of convictions to arrest while $probsen$ is proxied by the proportion of total convictions resulting in prison sentences. Although it is unlikely that an individual can be convicted without an arrest or sentenced without a conviction, we cannot rule out the possibility. Both of these variables are important in answering our research question and removing them will result in an omitted variable bias as we will demonstrate below. 
 
-```{r out.width="49%", fig.align="center", fig.show="hold"}
-model.with <- lm(log(crime) ~ probarr + probconv + probsen + avgsen + log(police), data=data)
-model.without <- lm(log(crime) ~ probsen + avgsen + log(police), data=data)
-# compare residual vs fitted plot
-plot(model.with, which=1, main="with probconv and probsen\n")
-plot(model.without, which=1, main="without probconv and probsen\n")
-# compare residual vs leverage plot
-plot(model.with, which=5, main="with probconv and probsen\n")
-plot(model.without, which=5, main="without probconv and probsen\n")
+Assuming we started out with a base model without $probconv$ and $probsen$, we wanted to see what effects $probconv$ and $probsen$ respectively have on the other explanatory variables when we add them individually to the base model. We looked at the printout of their respective model coefficients to understand the effects. Based on the research question, we expect that higher conviction and higher sentencing will result in lower crime rate. And since the relationship of $probconv$ and $probsen$ are positive with the other explanatory variables as demonstrated by the correlation matrix, we expect negative bias overall.  
+
+```{r}
+# demonstrate that probconv and probsen individually have positive relationship 
+# with the other explanatory variables: probarr, avgsen, police
+ind.vars <- subset(data, select= c("probarr", "probconv", "probsen", "avgsen", "police"))
+cor(ind.vars, ind.vars)
 ```
 
+```{r}
+# test omitted variable bias by first creating a base model and a model for each omitted variable
+m1.base <- lm(crime ~ probarr + avgsen + police, data=data)
+m1.probconv <- lm(crime ~ probarr + probconv + avgsen + police, data=data)
+m1.probsen <- lm(crime ~ probarr + probsen + avgsen + police, data=data)
+# print out the model coefficients
+(coef.base <- coeftest(m1.base, vcov=vcovHC))
+(coef.probconv <- coeftest(m1.probconv, vcov=vcovHC))
+(coef.probsen <- coeftest(m1.probsen, vcov=vcovHC))
+```
 
+Looking at the coefficients, it does appear that higher conviction ($probconv$) and higher sentencing ($probsen$) result in lower crime rate as seen by their negative sign in their respective coefficient. We also note that $probconv$ and $probsen$ are statistically significant when added to the base model. It appears that there is a negative omitted variable bias. For this reason, it would be best to include $probconv$ and $probsen$ in our Model 1 proposal.
+
+As we will discuss later in the section "Discussion of Causality", if the outliers happen to be a measurement error, it will result in our model being confounded by bias. Although that might be the case, there is also a likelihood that the measurement is valid, and we have demonstrated that not including $probconv$ and $probsen$ will most likely confound our model with omitted variable bias.
 
 Hence, we propose our first model as follows which contains all explanatory variables of key interest:
 
