@@ -306,14 +306,24 @@ se = list(se.m1, se.m2, se.m3, omit.stat=c("f", "ser"),
           star.cutoffs=c(0.05, 0.01, 0.001))
 ```
 
-# Discussion of Endogeneity Bias
-
-There are three types of bias that consitutes the endogeneity bias: omitted variable bias, reverse causality, and measurement error which can confound the results of our analysis. 
-
-In Model 1, we have discussed the potential issue of omitted variable bias by deciding not to include $probconv$ and $probsen$ variables due to their outliers. 
-
 # Discussion of Causality
+To make a causal model, we need to take into account for every factor except our x's and put them into the error term. As long as the error term doesn't change as we manipulate x, our model coefficents have a causal interpretation. In our case, causality cannot be fully determined since these models do not encompass all causal variables and may have three types of endogeneity bias: omitted variable bias, reverse causality and measurement error.
 
+Our model does not include many factors that have been known to increase the risk of criminal behavior. We will list the factors below:
+1. Juvenile School Performance and Truancy: Studies have shown that juveniles with lower academic performance are more likely to offend,
+more likely to offend frequently, and more likely to persist in crime. This suggests a negative omitted variable bias, as school performance is negative correlated with crime rate and ... *[COMMENT: omitted variable bias direction will depend on the variables in our model we need to address]*
+Chronically truant juveniles eventually drop out all together. With no diploma, these juveniles earn significantly less income during their lifetime, and subsequently are more likely to turn to crime. Additionally, truant juveniles are potentially exposed to more opportunities for crime, while those who attend school are under more supervision of school authorities.
+
+2. Poverty, Income Inequality and Unemployment: There a few reasons why living in areas of high poverty, income inequality and unemployment rates may lead to higher crime rates: Economic and social stress may affect parental practices (i.e. Households with lower incomes may have less attentive parents due to working multiple jobs to meet ends meet) leading to neglect and poor supervision of juveniles, hence increasing the risk of juvenile involvement in crime. Furthermore, areas with high income inequality may also bring those motivated to offend in close
+spatial contact with attractive targets for crime thus increasing the likelihood of criminal behavior. The omitted variable bias in this case is probably positive as the correlation between these explanatory variables are positive and positively correlated with crime rate.
+
+3. Unsafe Neighborhood Ranking
+
+Reverse causality refers either to a direction of cause-and-effect contrary to a common presumption or to a two-way causal relationship in, as it were, a loop. *[COMMENT: Will depend on our model results]*
+
+Lastly, there is the possibility of measurement error within our model, specifically around the proportion variables, $probconv$ and $probsen$, with values greater than 1. Though we assumed these values are valid to avoid ommitted bias in our models, we recognize the possibility that the values may also have arised due to measurement procedures or calculations. However, without further details on how the data was collected, we will not be able to estimate the direction and size of this bias.
+
+It is worth highlighting though that when we plot our independent variables against the model residuals, we find that the residuals appear unrelated to the values of the independent variables thus demonstrating exogenity. However, we understand that causality is not the same as exogeneity. Exogeneity is about whether OLS can correctly identify the beta coefficients while causality has stricter assumptions and is about whether manipulations to the explanatory variables do not infludence the error term.
 # Conclusion: 
 
 TODO: These are notes for policy suggestions
