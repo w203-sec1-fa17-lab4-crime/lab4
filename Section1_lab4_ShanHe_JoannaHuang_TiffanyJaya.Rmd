@@ -341,6 +341,84 @@ $$ log(crime) = \beta_0 + \beta_1 \cdot probarr + \beta_2 \cdot probconv + \beta
 m2 <- lm(log(crime) ~ probarr + probconv + probsen + avgsen + log(police) + log(density) + log(tax) + mix, data=data)
 ```
 
+## CLM 1 - A linear model
+
+The model is specified such that the dependent variable is a linear function of the explanatory variables. We can quickly verify this using the component+residual plots.
+
+```{r}
+# verify linearity of relationships using component+residual plots
+crPlots(m2)
+```
+
+For the most part, the variables appear linear.
+
+## CLM 2 - Random Sampling
+
+As discussed in Model 1, we do not know how the survey is collected, but we assume that the variables are representative of the entire population distribution.
+
+## CLM 3 - Multicollinearity
+
+```{r}
+# correlation matrix of explanatory variables
+data$log.density <-log(data$density)
+data$log.tax <- log(data$tax)
+cor(data.matrix(subset(data, select=c("probarr", "probconv", "probsen", "avgsen", "log.police", "log.density", "log.tax", "mix"))))
+# verify VIFs are less than 10
+vif(m2)
+```
+
+The variables are not perfectly correlated and the VIFs are low, so there is no perfect multicollinearity of the independent variables.
+
+## CLM 4 - Zero-Conditional Mean
+
+```{r out.width="49%", fig.align="center", fig.show="hold"}
+# plot residual vs fitted plot & residual vs leverage plot
+plot(m2, which=c(1, 5))
+# calculate the covariance for each independent variables with the model's residuals
+lapply(subset(data, select=c("probarr", "probconv", "probsen", "avgsen", "log.police", "log.density", "log.tax", "mix")),  
+      function(var) cov(var, m1$residuals))
+```
+
+Zero-conditional mean assumption holds because the spline line remains close to zero in the residual vs fitted plot, there is no outliers that have high influence, and the covariances are very close to zero indicating the likelihood of being exogenous. 
+
+## CLM 5 - Homoscedasticity
+
+```{r out.width="49%", fig.align="center", fig.show="hold"}
+# plot scale-location plot
+plot(m1, which=3)
+# Breusch-pagan test
+bptest(m1)
+# Score-test for non-constant error variance
+ncvTest(m1)
+```
+
+The assumption of homoskedasticity is met because the residuals appear randomly spread in the scale-location plot, and the p-value is statistically not significant in both Breusch-pagan and Score-test.
+
+## CLM 6 - Normality of residuals
+
+```{r out.width="49%", fig.align="center", fig.show="hold"}
+# normality of standard residuals
+rstnd = rstandard(m2)
+hist(rstnd, main="Histogram standard residuals", breaks=50, freq=FALSE)
+curve(dnorm(x, mean=0, sd=sd(rstnd)), col="red", lwd=2, add=TRUE)
+# normality of studentized residuals
+rstud = rstudent(m2)
+hist(rstud, main="Histogram studentized residuals", breaks=50, freq=FALSE)
+curve(dnorm(x, mean=0, sd=1), col="red", lwd=2, add=TRUE)
+# Q-Q plot standard residuals
+qqPlot(rstnd, distribution="norm", pch=20, main="Q-Q Plot standard residuals")
+qqline(rstnd, col="red", lwd=2)
+# Q-Q plot studentized residuals
+qqPlot(rstud, distribution="norm", pch=20, main="Q-Q Plot studentized residuals")
+qqline(rstud, col="red", lwd=2)
+# check sample size for model 2
+nobs(m2)
+```
+
+Although the assumption is not met, given the substantial sample size, we can be confident that due to OLSasymptotics the distribution of the residuals will be approximately normal.
+
+Since all six assumptions of the Classical Linear Model are met, we can assume that the OLS estimators areconsistent, normally distributed and BLUE.
+
 # Model 3: most, if not all, other covariates
 
 # Summary of Models
