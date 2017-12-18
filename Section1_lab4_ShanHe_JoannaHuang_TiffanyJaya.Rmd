@@ -280,11 +280,146 @@ Although the assumption is not met, given the substantial sample size, we can be
 
 Since all six assumptions of the Classical Linear Model are met, we can assume that the OLS estimators are consistent, normally distributed and BLUE.
 
-# Model 2
-One model that includes key explanatory variables and only covariates that you believe increase the
-accuracy of your results without introducing bias (for example, you should not include outcome variables
-that will absorb some of the causal effect you are interested in). This model should strike a balance
-between accuracy and parsimony and reflect your best understanding of the determinants of crime. 
+# Model 2: add covariates that increase accuracy without bias
+
+For Model 2, we decided to include variables that have an indirect impact to crime rate: $density$, $tax$, and $mix$. 
+
+We chose $density$ based on the theory that the more densely populated an area is, the harder it is for individuals to commit crime, which in turn decreases the crime rate. We assumed that if we included $density$ on top of Model 1, its coefficient will be positive since it has a negative relationship with $crime$ and a negative relationship with most of the explanatory variables except $police$ as shown below. Our thought process goes as follows: because we assume that densely populated area will lower crime rate, it will lower the probability of arrest, conviction and prison sentence and therefore have a negative relationship with them. On the other hand, we assume that an increased number of people per capita will reflect an increased number of police per capita and therefore $density$ will have a positive relationship with $police$.
+
+```{r}
+# list the correlation between density and model 1's explanatory variables
+cor(subset(data, select="density"), subset(data, select=c("probarr", "probconv", "probsen", "avgsen", "log.police")))
+```
+
+The correlation matrix confirms our assumptions.
+
+Since $density$ is positively skewed, it will benefit with a log transformation because its values are non-zero and positive.
+
+```{r out.width="49%", fig.align="center", fig.show="hold"}
+# before and after log transformation
+hist(data$density); hist(log(data$density))
+```
+
+Although $density$ has a direct relationship with $urban$, we decided not to include $urban$ because there are other factors, such as wage discrepancy between the wealthy and the poor that can potentially exist in urban counties which the current dataset does not support. In other words, by including $urban$, we might fall prey to the omitted variable bias because there are potentially multiple variables that influence $urban$ which are not available in our current dataset.
+
+We chose tax revenue per capita, $tax$, on a similar basis as $density$ in that higher tax revenue usually equates to more funding for protection services and therefore lowers the rate of crime. $tax$ also has a negative relationship with $crime$ and a negative relationship with most of the explanatory variables in Model 1 except for $police$, which we assume will reflect in its coefficients being positive. Again, our reasonings are similar to $density$ in that the more money a county has to pay for protection services, such as police, the less likely an individual will commit crime and therefore the lower the probability of arrest, conviction and sentencing is in that county. 
+
+```{r}
+# list the correlation between tax and model 1's explanatory variables
+cor(subset(data, select="tax"), subset(data, select=c("probarr", "probconv", "probsen", "avgsen", "log.police")))
+```
+
+The correlatin matrix again confirms our assumptions. 
+
+$tax$ can also benefit with a log transformation because its distribution is skewed and its values are non-zero and positive.
+
+```{r out.width="49%", fig.align="center", fig.show="hold"}
+# before and after log transformation
+hist(data$tax); hist(log(data$tax))
+```
+
+Lastly, we chose $mix$ as an indirect effect to $crime$ because we are under the impression that the $mix$ variable which reflects the ratio of face-to-face crime over all other crimes is a good indicator of violent crimes, and violent crimes have a direct impact to the average sentence a criminal will receive. We understand that it most likely has an effect on $probsen$ and $avgsen$ but we do not know what type of relationship it has. For this reason, we list the correlation between $mix$ and the explanatory variables of Model 1 to get a better understanding.
+
+```{r}
+# list the correlation between mix and model 1's explanatory variables
+cor(subset(data, select="mix"), subset(data, select=c("probarr", "probconv", "probsen", "avgsen", "log.police")))
+```
+
+Although $mix$ is positively skewed as well, we decided against taking the log transformation of $mix$ because it can makes its values between 0 and 1 more extreme.
+
+Before we propose our second model, we would like to discuss the reasons why we decided not to include the other variables as covariates in Model 2. 
+
+Neighborhood plays a central role in fostering the tendency of a person commiting a crime. Although we are given geographic locations such as $west$ and $central$ and neither $west$ nor $central$, it does not inform us whether those counties are considered safe or unsafe. Knowing that a county has an unsafe rating can give us a better picture of crime rates in those neighborhoods. Also, just having geographic locations do not inform us about laws enacted for safety in those particular regions. We will never know, for example, if counties in western region enact stricter law than those in the central region. For this reason, we did not consider $west$ and $central$ as variables in Model 2.
+
+In addition, including $ymale$ and $pctmin$ will introduce omitted variable bias in Model 2 because typically a county that has low education, high percentage of young male, and high percentage of minority will induce a high crime rate. Education plays a critical role when taking into consideration $ymale$ and $pctmin$, and including $ymale$ and $pctmin$ without the education variable will open up to bias in the model. 
+
+Although wage is a good determinant of crime because those who are poor have a higher propensity to commit crime out of financial needs, the groupings of the wage variables do not provide us insight as to the different financial groups between the poor, the middle class, and the wealthy. For example, service industry is mostly thought of as jobs with a high number of minimum wage workers, but as the outlier points out in $wageser$, it might be possible for someone to work in the service industry and earn a well-off paycheck if they worked, for example, in a five star hotel. Transportation industry can also be considered as mostly jobs with high number of minimum wage workers, but again, a pilot works in the transportation industry and gets paid well. It is for this reason that we did not include the wage variables in the model.
+
+Hence, we can propose our second model as follows with all the indirect variables included and test the validity of the 6 CLM assumptions:
+
+$$ log(crime) = \beta_0 + \beta_1 \cdot probarr + \beta_2 \cdot probconv + \beta_3 \cdot probsen + \beta_4 \cdot avgsen + \beta_5 \cdot log(police) + \beta_6 \cdot log(density) + \beta_7 \cdot log(tax) + \beta_8 \cdot mix u $$
+
+```{r}
+m2 <- lm(log(crime) ~ probarr + probconv + probsen + avgsen + log(police) + log(density) + log(tax) + mix, data=data)
+```
+
+## CLM 1 - A linear model
+
+The model is specified such that the dependent variable is a linear function of the explanatory variables. We can quickly verify this using the component+residual plots.
+
+```{r}
+# verify linearity of relationships using component+residual plots
+crPlots(m2)
+```
+
+For the most part, the variables appear linear.
+
+## CLM 2 - Random Sampling
+
+As discussed in Model 1, we do not know how the survey is collected, but we assume that the variables are representative of the entire population distribution.
+
+## CLM 3 - Multicollinearity
+
+```{r}
+# correlation matrix of explanatory variables
+data$log.density <-log(data$density)
+data$log.tax <- log(data$tax)
+cor(data.matrix(subset(data, select=c("probarr", "probconv", "probsen", "avgsen", "log.police", "log.density", "log.tax", "mix"))))
+# verify VIFs are less than 10
+vif(m2)
+```
+
+The variables are not perfectly correlated and the VIFs are low, so there is no perfect multicollinearity of the independent variables.
+
+## CLM 4 - Zero-Conditional Mean
+
+```{r out.width="49%", fig.align="center", fig.show="hold"}
+# plot residual vs fitted plot & residual vs leverage plot
+plot(m2, which=c(1, 5))
+# calculate the covariance for each independent variables with the model's residuals
+lapply(subset(data, select=c("probarr", "probconv", "probsen", "avgsen", "log.police", "log.density", "log.tax", "mix")),  
+      function(var) cov(var, m1$residuals))
+```
+
+Zero-conditional mean assumption holds because the spline line remains close to zero in the residual vs fitted plot, there is no outliers that have high influence, and the covariances are very close to zero indicating the likelihood of being exogenous. 
+
+## CLM 5 - Homoscedasticity
+
+```{r out.width="49%", fig.align="center", fig.show="hold"}
+# plot scale-location plot
+plot(m1, which=3)
+# Breusch-pagan test
+bptest(m1)
+# Score-test for non-constant error variance
+ncvTest(m1)
+```
+
+The assumption of homoskedasticity is met because the residuals appear randomly spread in the scale-location plot, and the p-value is statistically not significant in both Breusch-pagan and Score-test.
+
+## CLM 6 - Normality of residuals
+
+```{r out.width="49%", fig.align="center", fig.show="hold"}
+# normality of standard residuals
+rstnd = rstandard(m2)
+hist(rstnd, main="Histogram standard residuals", breaks=50, freq=FALSE)
+curve(dnorm(x, mean=0, sd=sd(rstnd)), col="red", lwd=2, add=TRUE)
+# normality of studentized residuals
+rstud = rstudent(m2)
+hist(rstud, main="Histogram studentized residuals", breaks=50, freq=FALSE)
+curve(dnorm(x, mean=0, sd=1), col="red", lwd=2, add=TRUE)
+# Q-Q plot standard residuals
+qqPlot(rstnd, distribution="norm", pch=20, main="Q-Q Plot standard residuals")
+qqline(rstnd, col="red", lwd=2)
+# Q-Q plot studentized residuals
+qqPlot(rstud, distribution="norm", pch=20, main="Q-Q Plot studentized residuals")
+qqline(rstud, col="red", lwd=2)
+# check sample size for model 2
+nobs(m2)
+```
+
+Although the assumption is not met, given the substantial sample size, we can be confident that due to OLSasymptotics the distribution of the residuals will be approximately normal.
+
+Since all six assumptions of the Classical Linear Model are met, we can assume that the OLS estimators areconsistent, normally distributed and BLUE.
 
 # Model 3: most, if not all, other covariates
 
@@ -382,7 +517,15 @@ Moreover, to interpret the estimed parameters for:
 
 And from this, $probconv$, $probsen$, $west$, $central$ show strong practical significance. 
 
+
 # Summary of Models
+
+```
+stargazer(m1, m2, m3, type="latex")
+title="Linear Models Predicting Log of Crime Rate"
+se = list(se.m1, se.m2, se.m3, omit.stat=c("f", "ser"), 
+          star.cutoffs=c(0.05, 0.01, 0.001))
+```
 
 # Discussion of Causality
 
