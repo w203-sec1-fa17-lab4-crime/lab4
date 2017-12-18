@@ -31,7 +31,7 @@ In this paper, we will explore whether the conservative approach to crime effect
 ```{r}
 # load the data
 data <- read.csv("crime_v2_updated.csv")
-# verify that it only contains data from 1987
+# verify that it only contains data from 1988
 unique(data$year)
 # list number of counties
 length(unique(data$county))
@@ -280,21 +280,6 @@ Although the assumption is not met, given the substantial sample size, we can be
 
 Since all six assumptions of the Classical Linear Model are met, we can assume that the OLS estimators are consistent, normally distributed and BLUE.
 
-# Conclusion: 
-
-TODO: These are notes for policy suggestions
-
-Read more on http://lawenforcementleaders.org/wp-content/uploads/2017/10/Law-Enforcement-Letter-to-President-Trump-and-Attorney-General-Sessions.pdf
-
-this effort is undercut by a diffuse focus. Attorney General Sessions’ regular statements encouraging law enforcement to focus on drug and nonviolent offenders divert officers away from that vital mission. Law enforcement resources are limited. Focusing on low-level non-violent offenders means less time to stop and bring to justice the most dangerous offenders.
-
-From our experience, we do not believe that always seeking the longest possible sentence will make
-our country safer. More than 25 percent of the Justice Department’s budget is consumed by federal
-prisons.[iv] Every unnecessary dollar spent on prisons is a dollar not spent on policing. And often, the
-best way to prevent recidivism is through treatment, not prison. Responsibly reducing incarceration
-will free funding and time for our officers to focus on targeting and preventing violent crime,
-making our streets safer.[v]
-
 # Model 2
 One model that includes key explanatory variables and only covariates that you believe increase the
 accuracy of your results without introducing bias (for example, you should not include outcome variables
@@ -402,6 +387,19 @@ And from this, $probconv$, $probsen$, $west$, $central$ show strong practical si
 # Discussion of Causality
 
 # Conclusion
+
+TODO: These are notes for policy suggestions
+
+Read more on http://lawenforcementleaders.org/wp-content/uploads/2017/10/Law-Enforcement-Letter-to-President-Trump-and-Attorney-General-Sessions.pdf
+
+this effort is undercut by a diffuse focus. Attorney General Sessions’ regular statements encouraging law enforcement to focus on drug and nonviolent offenders divert officers away from that vital mission. Law enforcement resources are limited. Focusing on low-level non-violent offenders means less time to stop and bring to justice the most dangerous offenders.
+
+From our experience, we do not believe that always seeking the longest possible sentence will make
+our country safer. More than 25 percent of the Justice Department’s budget is consumed by federal
+prisons.[iv] Every unnecessary dollar spent on prisons is a dollar not spent on policing. And often, the
+best way to prevent recidivism is through treatment, not prison. Responsibly reducing incarceration
+will free funding and time for our officers to focus on targeting and preventing violent crime,
+making our streets safer.[v]
 
 # References:
 "Shattering "Broken Windows": An Analysis of San Francisco’s Alternative Crime Policies", CENTER ON JUVENILE AND CRIMINAL JUSTICE, October 1999 http://www.cjcj.org/uploads/cjcj/documents/shattering.pdf
