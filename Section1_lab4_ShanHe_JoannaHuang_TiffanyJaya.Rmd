@@ -541,7 +541,7 @@ AIC(m3)
 
 Based on our best model, we have the following statiscally significant key variables of interest: probability of conviction, probability of sentencing, and police per capita. With all other variables controlled, an increase in the probability of conviction or probability of sentencing reduces the crime rate. Although we suspect that there is reverse causality bias, we note that an increase in police per capita causes an increase in the crime rate.
 
-Relating our analysis results to our research question: we see that while incapacitations through conviction and imprisonment is effective in reducing crime rate, higher police per capita actually boost the crime rate. And from this finding, we'd recommend policies that ensure the strictness of the guidelines for conviction and sentencing, but discourage increasing police per captita to reduce crime rates.
+Relating our analysis results to our research question: we see that while incapacitations through conviction and imprisonment is effective in reducing crime rate, a higher police per capita actually boosts the crime rate. From this finding, we'd recommend policies that ensure the strictness of the guidelines for conviction and sentencing, but discourage increasing police per captita to reduce crime rates.
 
 
 TODO: These are notes for policy suggestions
