@@ -153,15 +153,15 @@ m1.probsen <- lm(crime ~ probarr + probsen + avgsen + police, data=data)
 (coef.probsen <- coeftest(m1.probsen, vcov=vcovHC))
 ```
 
-Looking at the coefficients, it does appear that higher conviction ($probconv$) and higher sentencing ($probsen$) result in lower crime rate as seen by their negative sign in their respective coefficient. We also note that $probconv$ and $probsen$ are statistically significant when added to the base model. It appears that there is a negative omitted variable bias. For this reason, it would be best to include $probconv$ and $probsen$ in our Model 1 proposal.
+Looking at the coefficients, it does appear that higher conviction ($probconv$) and higher sentencing ($probsen$) result in lower crime rate ($crime$) as seen by their negative sign in their respective coefficient. We also note that $probconv$ and $probsen$ are statistically significant when added to the base model. It appears that there is a negative omitted variable bias. For this reason, it would be best to include $probconv$ and $probsen$ in our Model 1 proposal.
 
-As we will discuss later in the section "Discussion of Causality", if the outliers happen to be a measurement error, it will result in our model being confounded by bias. Although that might be the case, there is also a likelihood that the measurement is valid, and we have demonstrated that not including $probconv$ and $probsen$ will most likely confound our model with omitted variable bias.
+As we will later discuss in section "Discussion of Causality", if the outliers happen to be a measurement error, it will result in our model being confounded by bias. Although that might be the case, there is also a likelihood that the measurement is valid, and we have demonstrated that not including $probconv$ and $probsen$ will most likely confound our model with omitted variable bias.
 
 Hence, we propose our first model as follows which contains all explanatory variables of key interest:
 
 $$ log(crime) = \beta_0 + \beta_1 \cdot probarr + \beta_2 \cdot probconv + \beta_3 \cdot probsen + \beta_4 \cdot avgsen + \beta_5 \cdot log(police) + u $$
 
-We will now run the model and test the validity of the 6 CLM assumptions:
+We will now run the model and test the validity of the 6 CLM assumptions to ensure that the OLS estimators are consistent, normally distributed, and BLUE (best linear unbiased estimator).
 
 ```{r}
 m1 <- lm(log(crime) ~ probarr + probconv + probsen + avgsen + log(police), data=data)
