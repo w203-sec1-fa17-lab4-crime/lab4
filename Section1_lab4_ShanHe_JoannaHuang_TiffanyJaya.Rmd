@@ -319,7 +319,7 @@ spatial contact with attractive targets for crime thus increasing the likelihood
 
 3. Unsafe Neighborhood Ranking
 
-Reverse causality refers either to a direction of cause-and-effect contrary to a common presumption or to a two-way causal relationship in, as it were, a loop. *[COMMENT: Will depend on our model results]*
+Reverse causality refers either to a direction of cause-and-effect contrary to a common presumption or to a two-way causal relationship in, as it were, a loop. It appears that police per capita variable may be subject to such a bias. As crime rate increases in an area, it makes sense that more law enforcement may be needed and thus police per capita may increase. In our model, keeping all other variables constant, an 1% increase in police per captipa increases crime rate by 0.49%. This demonstrates a two-way causal relationship.
 
 Lastly, there is the possibility of measurement error within our model, specifically around the proportion variables, $probconv$ and $probsen$, with values greater than 1. Though we assumed these values are valid to avoid ommitted bias in our models, we recognize the possibility that the values may also have arised due to measurement procedures or calculations. However, without further details on how the data was collected, we will not be able to estimate the direction and size of this bias.
 
