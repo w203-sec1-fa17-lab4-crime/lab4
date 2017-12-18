@@ -423,7 +423,7 @@ Since all six assumptions of the Classical Linear Model are met, we can assume t
 
 # Model 3: most, if not all, other covariates
 
-In Model 3, we are going to include more variables from the dataset to try to control for more effects the other variables have on our dependent variable. Although this model might introduce many noises as it becomes over-specified, it will be able to explain more of the variances in the dependent variable than the previous models. 
+In Model 3, we are going to include more variables from the dataset to try to control effects the other variables have on our dependent variable. Although this model might introduce many noises as it becomes over-specified, it will be able to explain more of the variances in the dependent variable than the previous models. 
 
 ```{r}
 # EDA for variables that aren't in model 1 or 2
