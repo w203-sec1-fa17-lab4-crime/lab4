@@ -539,23 +539,9 @@ AIC(m3)
 
 # Conclusion
 
-Based on our best model, we have the following statiscally significant key variables of interest: probability of conviction, probability of sentencing, and police per capita. With all other variables controlled, an increase in the probability of conviction or probability of sentencing reduces the crime rate. Although we suspect that there is reverse causality bias, we note that an increase in police per capita causes an increase in the crime rate.
+Based on our best model, we have the following statiscally significant key variables of interest: probability of conviction, probability of sentencing, and police per capita. With all other variables controlled, an increase in the probability of conviction or probability of sentencing reduces the crime rate. Although we see thatan increase in police per capita causes an increase in the crime rate, we suspect that there is a reverse causality bias, whereas in real life the cause is the crime rate and police per capita is the effect. With this potential bias, we concluded that police per capita is not a good determinant for crime rate. 
 
-Relating our analysis results to our research question: we see that while incapacitations through conviction and imprisonment is effective in reducing crime rate, a higher police per capita actually boosts the crime rate. From this finding, we'd recommend policies that ensure the strictness of the guidelines for conviction and sentencing, but discourage increasing police per captita to reduce crime rates.
-
-
-TODO: These are notes for policy suggestions
-
-Read more on http://lawenforcementleaders.org/wp-content/uploads/2017/10/Law-Enforcement-Letter-to-President-Trump-and-Attorney-General-Sessions.pdf
-
-this effort is undercut by a diffuse focus. Attorney General Sessions’ regular statements encouraging law enforcement to focus on drug and nonviolent offenders divert officers away from that vital mission. Law enforcement resources are limited. Focusing on low-level non-violent offenders means less time to stop and bring to justice the most dangerous offenders.
-
-From our experience, we do not believe that always seeking the longest possible sentence will make
-our country safer. More than 25 percent of the Justice Department’s budget is consumed by federal
-prisons.[iv] Every unnecessary dollar spent on prisons is a dollar not spent on policing. And often, the
-best way to prevent recidivism is through treatment, not prison. Responsibly reducing incarceration
-will free funding and time for our officers to focus on targeting and preventing violent crime,
-making our streets safer.[v]
+Relating our analysis results to our research question: we see that strict incapacitations through conviction and imprisonment was effective in reducing crime rate in 1988 for the North Carolina counties. The use of this finding to support current policy suggestion is subject to a few limitations: 1) our analysis was based on data taken in North Carolina and it's not representative of the situation for United States, 2) our analysis was based on data taken in 1988 and our analysis might not be pertinent to be applied to the model for 2017 and 3) our analysis was based on one sample of 90 observations which limits our capability to find conclusive enough evidences.
 
 # References:
 "Shattering "Broken Windows": An Analysis of San Francisco’s Alternative Crime Policies", CENTER ON JUVENILE AND CRIMINAL JUSTICE, October 1999 http://www.cjcj.org/uploads/cjcj/documents/shattering.pdf
