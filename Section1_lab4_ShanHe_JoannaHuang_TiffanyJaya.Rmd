@@ -12,7 +12,9 @@ library(lmtest) # bptest
 library(moments) # skewness
 library(outliers) # outlier
 library(tidyr) # gather
-library(sandwich) # vcovHC
+library(stargazer) # stargazer for regression table
+library(lmtest) # coefficient hypothesis test 
+library(sandwich) # vcovHC heteroskedasticity-robust standard error
 library(stargazer) # stargazer
 # prevent scientific notation, specifically used in outliers package
 options(scipen=999)
@@ -421,6 +423,101 @@ Since all six assumptions of the Classical Linear Model are met, we can assume t
 
 # Model 3: most, if not all, other covariates
 
+Adding arbitrary variables uses up valuable degrees of freedom which increases the standard error which in turn reduces the precision of this estimate. This effect is especially pronounced in small sample size. 
+
+One model that includes the previous covariates, and most, if not all, other covariates. A key purpose
+of this model is to demonstrate the robustness of your results to model specification.
+
+```{r}
+# EDA for variables that aren't in model 1 or 2
+summary(data[(names(data) %in% c("west", "central", "urban", "wagecon", "wagetuc", "wagetrd", "wagefir", "wageser", "wagemfg", "wagefed", "wagesta", "wageloc", "pctmin", "ymle"))])
+```
+Looking at the summary, every variable seems to be in an expected range except for the outlier 2177.1 in $wageser$. 
+
+```{r}
+# Look into wageser with an unusual max of 2177.1
+boxplot(data$wageser)
+```
+2177.1 is clearly an outlier in the data and could be possibly due to a measurement error. In this case, we decide not to include this $wageser$ to avoid confounding bias caused by potentially inaccurate data. 
+
+Moreover, let's look at how $west$ and $central$ distribute in the sample
+```{r}
+unique(cbind(data$west, data$central))
+```
+Note that although we don't have any counties that are both in west and central, as expected, we see some counties that neither in west or central. In order to consider the effect on different regions, we will need to use both indicator variables in our model. 
+
+Out of all the variables that aren't included in Model 1 or Model 2, we have decided to include:
+1) $west$ & $central$, as indicator variables, to control for the regional effect on crime rate
+2) $urban$, as an indicator variable, to control for the non-density impact of urbanization on crime crate
+3) $wagecon$, $wagetuc$, $wagetrd$, $wagefir$, $wageser$, $wagemfg$, $wagefed$, $wagesta$, $wageloc$ to control for the effects of wages in different industries have on our crime rate
+4) $pctmin$ and $ymale$ to control for the demographic effect on crime rate 
+
+Now let's look the relationship between the selected variables and our dependent variable $log(crime)$
+```{r}
+scatterplotMatrix(~ log(crime) + wagecon + wagetuc + wagetrd + wagefir, data = data)
+scatterplotMatrix(~ log(crime) + wagemfg + wagefed + wagesta + wageloc, data = data)
+scatterplotMatrix(~ log(crime) + pctmin + ymale, data = data)
+```
+
+None of the variables shows strong evidence of non-linear relationship with the dependent variable $log(crmrte)$. 
+
+We notice that the distributions for the variables $wagecon$, $wagetrd$, $wagefir$, $wagemfg$, $wagesta$, and $wageloc$ are positively skewed, since they are all postive values, we can apply log transformations to all of them. For the ease of the intepretation of the model, we apply log tranformation to the other wage related variable $wagetuc$ as well.
+
+Although $ymale$ is also positively skewed and could benefit from a log transformation in terms of normality, it's hard to interpret the slope parameter of its log transformation. Hence, we decided to leave it as it is. 
+
+Let's double check the linearity of the relationship between our transformed variables and our dependent variable $log(crime)$
+```{r}
+scatterplotMatrix(~ log(crime) + log(wagecon) + log(wagetuc) + log(wagetrd) + log(wagefir), data = data)
+scatterplotMatrix(~ log(crime) + log(wagemfg) + log(wagefed) + log(wagesta) + log(wageloc), data = data)
+scatterplotMatrix(~ log(crime) + pctmin + ymale, data = data)
+```
+
+We didn't see any strong violation agaisnt the linearity of the relationships. Hence, we will propose the following model:
+
+```{r}
+m3 <- lm(log(crime) ~ probarr + probconv + probsen + avgsen + log(police) + log(density) + log(tax) + mix + west + central + urban + log(wagecon) + log(wagetuc) + log(wagetrd) + log(wagefir) + log(wagemfg) + log(wagefed) + log(wagesta) + log(wageloc) + ymale, data=data)
+```
+
+```{r}
+plot(m3)
+bptest(m3)
+```
+
+Similar to Model 1, Model 3 shows 1) no strong violation of zero-conditional mean, according to the Residuals vs Fitted plot, 2) has no outlier with large influence and 3) shows skewedness in the QQ plot for the residuals. However, Model 3 shows a violation of homoskedasticity according to both the Residuals vs Fitted and the Scale-Location plots. 
+
+In response, just like what we normally would have done to be conservative, we will use the heteroskedasticity-robust standard errors for the hypothesis tests on the slope parameters. 
+
+One typical concern when including variables that tend to be highly correlated, like wages, is that the multi-collinearity will inflate the variance of the OLS estimated parameters. And to investigate this, we compute the variance inflation factos (vif) of each variable in the model:
+```{r}
+vif(m3)
+```
+Looking at the variance inflation factors, we don't see any variable with high (>10) vif, meaning that we don't have high multi-collinearity in our model.
+
+Next, we can use the heteroskedasticity-robust standard errors to perform t-tests on our estimated parameters:
+```{r}
+#compute standard errors for model 3 for regression table
+(se.m3 = sqrt(diag(vcovHC(m3))))
+
+# We pass the standard errors into stargazer through 
+# the se argument.
+stargazer(m3, type = "text", omit.stat = "f",
+          se = list(se.m3),
+          star.cutoffs = c(0.05, 0.01, 0.001))
+``` 
+
+According to the hypothesis tests using the heteroskedasticity-robust standard errors, we can see that variables $probconv$, $probsen$, $west$, $central$ show strong statistical significance (p-value < 0.001), same with $log(density)$ (p-value < 0.01) and $log(police)$ (p-value < 0.05).
+
+Moreover, to interpret the estimed parameters for:
+1) $probconv$: keeping all other variables constant, a 0.1 increase in $probconv$ results in a 5.23% decrease in crime rate
+2) $probsen$: keeping all other variables constant, a 0.1 increase in $probsen$ results in a 14.56% decrease in crime rate
+3) $west$: keeping all other variables constant, being in west region decreases crime rate by 29.4%
+4) $central$: keeping all other variables constant, being in central region decreases crime rate by 51.5%
+5) $log(density)$: keeping all other variables constant, an 1% increase in density increases crime rate by 0.18%
+6) $log(police)$:  keeping all other variables constant, an 1% increase in police per captipa increases crime rate by 0.49%
+
+And from this, $probconv$, $probsen$, $west$, $central$ show strong practical significance. 
+
+
 # Summary of Models
 
 ```
@@ -432,7 +529,7 @@ se = list(se.m1, se.m2, se.m3, omit.stat=c("f", "ser"),
 
 # Discussion of Causality
 
-# Conclusion: 
+# Conclusion
 
 TODO: These are notes for policy suggestions
 
