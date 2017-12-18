@@ -285,7 +285,7 @@ Since all six assumptions of the Classical Linear Model are met, we can assume t
 
 For Model 2, we decided to include variables that have an indirect impact to crime rate: $density$, $tax$, and $mix$. 
 
-We chose $density$ based on the theory that the more densely populated an area is, the harder it is for individuals to commit crime, which in turn decreases the crime rate. We assumed that if we included $density$ on top of Model 1, its coefficient will be positive since it has a negative relationship with $crime$ and a negative relationship with most of the explanatory variables as shown below. Our thought process goes as follows: because we assume that densely populated area will lower crime rate, it will lower the probability of arrest, conviction and prison sentence and therefore have a negative relationship with them. On the other hand, we assume that an increased number of people per capita will reflect an increased number of police per capita and therefore $density$ will have a positive relationship with $police$.
+We chose $density$ based on the theory that the more densely populated an area is, the harder it is for individuals to commit crime, which in turn decreases the crime rate. Because we assume that densely populated area will lower crime rate, it will lower the probability of arrest, conviction and prison sentence and therefore have a negative relationship with them. On the other hand, we assume that an increased number of people per capita will reflect an increased number of police per capita and therefore $density$ will have a positive relationship with $police$.
 
 ```{r}
 # list the correlation between density and model 1's explanatory variables
@@ -304,7 +304,7 @@ hist(data$density); hist(log(data$density))
 
 Although $density$ has a direct relationship with $urban$, we decided not to include $urban$ because there are other factors, such as wage discrepancy between the wealthy and the poor that can potentially exist in urban counties which our current dataset does not have. In other words, by including $urban$, we might fall prey to the omitted variable bias because there are potentially multiple variables that influence $urban$ which are not available in our current dataset.
 
-We chose tax revenue per capita, $tax$, on a similar basis as $density$ in that higher tax revenue usually equates to more funding for protection services and therefore lowers the rate of crime. $tax$ also has a negative relationship with $crime$ and a negative relationship with most of the explanatory variables in Model 1 except for $police$, which we assume will reflect in its coefficients being positive. Again, our reasonings are similar to $density$ in that the more money a county has to pay for protection services, such as police, the less likely an individual will commit crime and therefore the lower the probability of arrest, conviction and sentencing is in that county. 
+We chose tax revenue per capita, $tax$, on a similar basis as $density$ in that higher tax revenue usually equates to more funding for protection services and therefore lowers the rate of crime. $tax$ also has a negative relationship with $crime$ and a negative relationship with most of the explanatory variables in Model 1 except for $police$. Again, our reasonings are similar to $density$ in that the more money a county has to pay for protection services, such as police, the less likely an individual will commit crime and therefore the lower the probability of arrest, conviction and sentencing is in that county. 
 
 ```{r}
 # list the correlation between tax and model 1's explanatory variables
@@ -407,7 +407,7 @@ qqline(rstud, col="red", lwd=2)
 nobs(m2)
 ```
 
-Since all six assumptions of the Classical Linear Model are met, we can assume that the OLS estimators areconsistent, normally distributed and BLUE.
+Since all six assumptions of the Classical Linear Model are met, we can assume that the OLS estimators are consistent, normally distributed and BLUE.
 
 # Model 3: most, if not all, other covariates
 
@@ -570,7 +570,7 @@ It is worth highlighting though that when we plot our independent variables agai
 
 # Conclusion
 
-Based on our best model, we have the following statiscally significant key variables of interest: probability of conviction, probability of sentencing, and police per capita. With all other variables controlled, an increase in the probability of conviction or probability of sentencing reduces the crime rate. Although we see that an increase in police per capita causes an increase in the crime rate, we suspect that there is a reverse causality bias, whereas in actuality, the cause is the crime rate and police per capita is the effect. With this potential bias, we concluded that police per capita is not a good determinant for crime rate. 
+Based on our best model, we have the following statiscally significant key variables of interest: probability of conviction, probability of sentencing, and police per capita. With all other variables controlled, an increase in the probability of conviction or probability of sentencing reduces the crime rate. Although we see that an increase in police per capita causes an increase in the crime rate, we suspect that there is a reverse causality bias, where in actuality, the cause is the crime rate and police per capita is the effect. With this potential bias, we concluded that police per capita is not a good determinant for crime rate. 
 
 Relating our analysis results to our research question: we see that strict incapacitations through conviction and imprisonment was effective in reducing crime rate in 1988 for the North Carolina counties. The use of this finding to support current policy suggestion is subject to a few limitations: 1) our analysis was based on data taken in North Carolina and it's not representative of the situation for United States, 2) our analysis was based on data taken in 1988 and our analysis might not be pertinent to be applied to the model for 2017 and 3) our analysis was based on one sample of 90 observations which limits our capability to find conclusive enough evidences.
 
