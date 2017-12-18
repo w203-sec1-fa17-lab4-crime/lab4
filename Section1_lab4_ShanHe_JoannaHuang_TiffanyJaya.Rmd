@@ -365,11 +365,14 @@ vif(m2)
 4. Zero-conditional mean assumption holds because the spline line remains close to zero in the residual vs fitted plot, there is no outliers that have high influence, and the covariances are very close to zero indicating the likelihood of being exogenous. 
 
 ```{r out.width="49%", fig.align="center", fig.show="hold"}
+data$log.density <- log(data$density)
+data$log.tax <- log(data$tax)
 # plot residual vs fitted plot & residual vs leverage plot
 plot(m2, which=c(1, 5))
 # calculate the covariance for each independent variables with the model's residuals
-lapply(subset(data, select=c("probarr", "probconv", "probsen", "avgsen", "log.police", "log.density", "log.tax", "mix")),  
-      function(var) cov(var, m1$residuals))
+lapply(subset(data, select=c("probarr", "probconv", "probsen", "avgsen", "log.police", 
+                             "log.density", "log.tax", "mix")),  
+      function(var) cov(var, m2$residuals))
 ```
 
 5. The assumption of homoskedasticity is met because even though the residuals appear to spread in a downward curvature in the scale-location plot and the p-value is statistically significant based on the Breusch-pagan test, the error variance is constant because the p-value is not statistically significant in Score-test. Also, we can use the heteroscedasticity-robust standard errors for the hypothesis tests on the slope parameters.
@@ -408,23 +411,15 @@ Since all six assumptions of the Classical Linear Model are met, we can assume t
 
 # Model 3: most, if not all, other covariates
 
-<<<<<<< HEAD
-Adding arbitrary variables uses up valuable degrees of freedom which increases the standard error which in turn reduces the precision of this estimate. This effect is especially pronounced in small sample size. 
-=======
 In Model 3, we are going to include more variables from the dataset to try to control effects the other variables have on our dependent variable. Although this model might introduce more noises as it becomes over-specified, it will be able to explain more of the variances in the dependent variable than the previous models. 
 
-```{r}
-# EDA for variables that aren't in model 1 or 2
-summary(data[(names(data) %in% c("west", "central", "urban", "wagecon", "wagetuc", "wagetrd", "wagefir", "wageser", "wagemfg", "wagefed", "wagesta", "wageloc", "pctmin", "ymle"))])
-```
-Looking at the summary, every variable seems to be in an expected range except for the outlier 2177.1 in $wageser$. 
->>>>>>> origin/master
+As discussed in the EDA, every variable seems to be in an expected range except for the outlier \$2177.10 in $wageser$. 
 
 ```{r}
 # Look into wageser with an unusual max of 2177.1
 boxplot(data$wageser)
 ```
-2177.1 is clearly an outlier in the data and could be possibly due to a measurement error. In this case, we decide not to include this $wageser$ to avoid confounding bias caused by potentially inaccurate data. 
+\$2177.10 is clearly an outlier in the data and could be possibly due to a measurement error. In this case, we decide not to include this $wageser$ to avoid confounding bias caused by potentially inaccurate data. 
 
 Moreover, let's look at how $west$ and $central$ distribute in the sample
 ```{r}
@@ -461,15 +456,11 @@ scatterplotMatrix(~ log(crime) + pctmin + ymale, data = data)
 We didn't see any strong violation agaisnt the linearity of the relationships. Hence, we will propose the following model:
 
 ```{r}
-<<<<<<< HEAD
 m3 <- lm(log(crime) ~ probarr + probconv + probsen + avgsen + log(police) + 
          log(density) + log(tax) + mix + 
          west + central + urban + ymale + pctmin + 
          log(wagecon) + log(wagetuc) + log(wagetrd) + log(wagefir) + 
          log(wagemfg) + log(wagefed) + log(wagesta) + log(wageloc), data=data)
-=======
-m3 <- lm(log(crime) ~ probarr + probconv + probsen + avgsen + log(police) + log(density) + log(tax) + mix + west + central + urban + log(wagecon) + log(wagetuc) + log(wagetrd) + log(wagefir) + log(wagemfg) + log(wagefed) + log(wagesta) + log(wageloc) + ymale + pctmin, data=data)
->>>>>>> origin/master
 ```
 
 ## CLM 1 - 6
@@ -535,35 +526,24 @@ se.m3 <- sqrt(diag(vcovHC(m3)))
 stargazer(m1, m2, m3, type="text", omit.stat=c("f", "ser"),
          se=list(se.m1, se.m2, se.m3),
          star.cutoffs=c(0.05, 0.01, 0.001))
+# running AIC 
+AIC(m1)
+AIC(m2)
+AIC(m3)
 ```
 
 What we have observed is as follows:
 
 1. $probconv$, $probsen$ and $log(police)$ come up as statistically significant in *Model 1*.
 
-<<<<<<< HEAD
 2. What is notable to point out is that $probarr$ and $log(police)$ do not have negative coefficient. $log(police)$ makes sense because polices most likely occupy places with high activities of crime. As for the $probarr$, there might be underlying variables that are not yet considered in the model.
 
 3. In *Model 2*, where direct and indirect variables to crime rate are added to the model, $probconv$ and $probsen$ remain statistically significant while $log(police)$ drops its statistically significance with the introduction of $log(density)$. What this tells us is that $police$ and $density$ are positively correlated. $density$ has an independent effect on $police$. Then a regreession that omits $density$ like in Model 1 will overstate the effect of $police$. What this also tells us is that there appears to be more crime in densely populated area because a 1% increase in people per square mile will reflect a 0.271% increase in crime rate. 
 
 4. When we dumped all the covariates in, like in the case of *Model 3*, $probconv$, $probsen$, $log(density)$ and $log(police)$ remain statistically significant, but other variables such as percentage of minority $pctmin$ and $west$ become statistically significant at the 0.01 and 0.05 level respectively. We were not expecting statistical significance of $pctmin$ and $west$, so it has become an interesting finding that we need to consider.
-=======
-According to the hypothesis tests using the heteroskedasticity-robust standard errors, we can see that variables $probconv$, $probsen$, $log(density)$ show strong statistical significance (p-value < 0.001), same with $log(police)$, $pctmin$ (p-value < 0.01) and $west$ (p-value < 0.05).
-
-Moreover, to interpret the estimed parameters for:
-1) $probconv$: keeping all other variables constant, a 0.1 increase in $probconv$ results in a 5.81% decrease in crime rate
-2) $probsen$: keeping all other variables constant, a 0.1 increase in $probsen$ results in a 15.78% decrease in crime rate
-5) $log(density)$: keeping all other variables constant, an 1% increase in density increases crime rate by 0.27%
-7) $log(police)$:  keeping all other variables constant, an 1% increase in police per captipa increases crime rate by 0.49%
-6) $pctmin$: keeping all other variables constant, a 1 increase in $pctmin$ increases crime rate by 0.18%
-3) $west$: keeping all other variables constant, being in west region decreases crime rate by 17.5%
-
-And from this, $probconv$, $probsen$, and $west$ show strong practical significance. 
->>>>>>> origin/master
 
 5. The explanatory variables of key variables do not change much from Model 1 to Model 2 to Model 3 with the exception of $probarr$. Again we need to consider the inclusions of other variables when it comes to employing $probarr$ in the model. But overall, the variables we have chosen seem to be good choices as explanatory variables of key interest 
 
-<<<<<<< HEAD
 6. Model 3 includes the most variables and naturally has a higher R^2 value. One common concern for including many variables is that the multi-collinearity between the variables inflates the variances of the OLS estimates. But as shown in the analysis of Model 3, we did not encounter any high VIF for the variables. This could be a main reason why Model 3 is outperforming the other two models, as it explains more of the dependent variable without introducing much more noise.
 
 7. Based on *Model 3*, 
@@ -572,25 +552,7 @@ And from this, $probconv$, $probsen$, and $west$ show strong practical significa
 * $log(police)$:  keeping all other variables constant, a 1% increase in police per capita increases crime rate by 0.486%.
 * $log(density)$: keeping all other variables constant, a 1% increase in density increases crime rate by 0.269%.
 * $west$: keeping all other variables constant, being in west region decreases crime rate by 17.5%, which is practically significant. 
-=======
-# Summary of Models
-```{r}
-(se.m1 = sqrt(diag(vcovHC(m1))))
-(se.m2 = sqrt(diag(vcovHC(m2))))
-(se.m3 = sqrt(diag(vcovHC(m3))))
-```
-```{r}
-stargazer(m1, m2, m3, type = "text", omit.stat = "f",
-          se = list(se.m1, se.m2, se.m3),
-          star.cutoffs = c(0.05, 0.01, 0.001))
-```
->>>>>>> origin/master
 
-```{r}
-AIC(m1)
-AIC(m2)
-AIC(m3)
-```
 # Discussion of Causality
 To make a causal model, we need to take into account for every factor except our x's and put them into the error term. As long as the error term doesn't change as we manipulate x, our model coefficents have a causal interpretation. In our case, causality cannot be fully determined since these models do not encompass all causal variables and may have three types of endogeneity bias: omitted variable bias, reverse causality and measurement error.
 
