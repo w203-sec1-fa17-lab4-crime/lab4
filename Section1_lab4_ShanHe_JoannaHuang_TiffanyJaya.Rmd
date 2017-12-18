@@ -475,7 +475,7 @@ scatterplotMatrix(~ log(crime) + pctmin + ymale, data = data)
 We didn't see any strong violation agaisnt the linearity of the relationships. Hence, we will propose the following model:
 
 ```{r}
-m3 <- lm(log(crime) ~ probarr + probconv + probsen + avgsen + log(police) + log(density) + log(tax) + mix + west + central + urban + log(wagecon) + log(wagetuc) + log(wagetrd) + log(wagefir) + log(wagemfg) + log(wagefed) + log(wagesta) + log(wageloc) + ymale, data=data)
+m3 <- lm(log(crime) ~ probarr + probconv + probsen + avgsen + log(police) + log(density) + log(tax) + mix + west + central + urban + log(wagecon) + log(wagetuc) + log(wagetrd) + log(wagefir) + log(wagemfg) + log(wagefed) + log(wagesta) + log(wageloc) + ymale + pctmin, data=data)
 ```
 
 ```{r}
@@ -505,31 +505,44 @@ stargazer(m3, type = "text", omit.stat = "f",
           star.cutoffs = c(0.05, 0.01, 0.001))
 ``` 
 
-According to the hypothesis tests using the heteroskedasticity-robust standard errors, we can see that variables $probconv$, $probsen$, $west$, $central$ show strong statistical significance (p-value < 0.001), same with $log(density)$ (p-value < 0.01) and $log(police)$ (p-value < 0.05).
+According to the hypothesis tests using the heteroskedasticity-robust standard errors, we can see that variables $probconv$, $probsen$, $log(density)$ show strong statistical significance (p-value < 0.001), same with $log(police)$, $pctmin$ (p-value < 0.01) and $west$ (p-value < 0.05).
 
 Moreover, to interpret the estimed parameters for:
-1) $probconv$: keeping all other variables constant, a 0.1 increase in $probconv$ results in a 5.23% decrease in crime rate
-2) $probsen$: keeping all other variables constant, a 0.1 increase in $probsen$ results in a 14.56% decrease in crime rate
-3) $west$: keeping all other variables constant, being in west region decreases crime rate by 29.4%
-4) $central$: keeping all other variables constant, being in central region decreases crime rate by 51.5%
-5) $log(density)$: keeping all other variables constant, an 1% increase in density increases crime rate by 0.18%
-6) $log(police)$:  keeping all other variables constant, an 1% increase in police per captipa increases crime rate by 0.49%
+1) $probconv$: keeping all other variables constant, a 0.1 increase in $probconv$ results in a 5.81% decrease in crime rate
+2) $probsen$: keeping all other variables constant, a 0.1 increase in $probsen$ results in a 15.78% decrease in crime rate
+5) $log(density)$: keeping all other variables constant, an 1% increase in density increases crime rate by 0.27%
+7) $log(police)$:  keeping all other variables constant, an 1% increase in police per captipa increases crime rate by 0.49%
+6) $pctmin$: keeping all other variables constant, a 1 increase in $pctmin$ increases crime rate by 0.18%
+3) $west$: keeping all other variables constant, being in west region decreases crime rate by 17.5%
 
-And from this, $probconv$, $probsen$, $west$, $central$ show strong practical significance. 
+And from this, $probconv$, $probsen$, and $west$ show strong practical significance. 
 
 
 # Summary of Models
-
+```{r}
+(se.m1 = sqrt(diag(vcovHC(m1))))
+(se.m2 = sqrt(diag(vcovHC(m2))))
+(se.m3 = sqrt(diag(vcovHC(m3))))
 ```
-stargazer(m1, m2, m3, type="latex")
-title="Linear Models Predicting Log of Crime Rate"
-se = list(se.m1, se.m2, se.m3, omit.stat=c("f", "ser"), 
-          star.cutoffs=c(0.05, 0.01, 0.001))
+```{r}
+stargazer(m1, m2, m3, type = "text", omit.stat = "f",
+          se = list(se.m1, se.m2, se.m3),
+          star.cutoffs = c(0.05, 0.01, 0.001))
 ```
 
+```{r}
+AIC(m1)
+AIC(m2)
+AIC(m3)
+```
 # Discussion of Causality
 
 # Conclusion
+
+Based on our best model, we have the following statiscally significant key variables of interest: probability of conviction, probability of sentencing, and police per capita. With all other variables controlled, an increase in the probability of conviction or probability of sentencing reduces the crime rate. Although we suspect that there is reverse causality bias, we note that an increase in police per capita causes an increase in the crime rate.
+
+Relating our analysis results to our research question: we see that while incapacitations through conviction and imprisonment is effective in reducing crime rate, higher police per capita actually boost the crime rate. And from this finding, we'd recommend policies that ensure the strictness of the guidelines for conviction and sentencing, but discourage increasing police per captita to reduce crime rates.
+
 
 TODO: These are notes for policy suggestions
 
