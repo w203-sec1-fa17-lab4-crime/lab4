@@ -529,12 +529,20 @@ What we have observed is as follows:
 
 2. What is notable to point out is that $probarr$ and $log(police)$ do not have negative coefficient. $log(police)$ makes sense because polices most likely occupy places with high activities of crime. As for the $probarr$, there might be underlying variables that are not yet considered in the model.
 
-3. In *Model 2*, where direct and indirect variables to crime rate are added to the model, $probconv$ and $probsen$ remain statistically significant while $log(police)$ drops its statistically significance with the introduction of $log(density)$. What this tells us is that $police$ and $density$ are positively correlated. $density$ has an independent effect on $police$. Then a regreession that omits $density$ like in Model 1 will overstate the effect of $police$. What this also tells us is that there appears to be more crime in densely populated area because a 1% increase in people per square mile will reflect a 27.1% increase in crime rate. 
+3. In *Model 2*, where direct and indirect variables to crime rate are added to the model, $probconv$ and $probsen$ remain statistically significant while $log(police)$ drops its statistically significance with the introduction of $log(density)$. What this tells us is that $police$ and $density$ are positively correlated. $density$ has an independent effect on $police$. Then a regreession that omits $density$ like in Model 1 will overstate the effect of $police$. What this also tells us is that there appears to be more crime in densely populated area because a 1% increase in people per square mile will reflect a 0.271% increase in crime rate. 
 
-4. When we dumped all the covariates in, like in the case of *Model 3*, $probconv$, $probsen$, $log(density)$ and $log(police)$ remain statistically significant, but other variables such as percentage of minority $pctmin$ and $west$ become statistically significant at the 0.01 and 0.05 level respectively. 
+4. When we dumped all the covariates in, like in the case of *Model 3*, $probconv$, $probsen$, $log(density)$ and $log(police)$ remain statistically significant, but other variables such as percentage of minority $pctmin$ and $west$ become statistically significant at the 0.01 and 0.05 level respectively. We were not expecting statistical significance of $pctmin$ and $west$, so it has become an interesting finding that we need to consider.
 
+5. The explanatory variables of key variables do not change much from Model 1 to Model 2 to Model 3 with the exception of $probarr$. Again we need to consider the inclusions of other variables when it comes to employing $probarr$ in the model. But overall, the variables we have chosen seem to be good choices as explanatory variables of key interest 
 
+6. Model 3 includes the most variables and naturally has a higher R^2 value. One common concern for including many variables is that the multi-collinearity between the variables inflates the variances of the OLS estimates. But as shown in the analysis of Model 3, we did not encounter any high VIF for the variables. This could be a main reason why Model 3 is outperforming the other two models, as it explains more of the dependent variable without introducing much more noise.
 
+7. Based on *Model 3*, 
+* $probconv$: keeping all other variables constant, a 0.1 increase in $probconv$ results in a 5.81% decrease in crime rate, which is practically significant.
+* $probsen$: keeping all other variables constant, a 0.1 increase in $probsen$ results in a 15.78% decrease in crime rate, which again is practically significant.
+* $log(police)$:  keeping all other variables constant, a 1% increase in police per capita increases crime rate by 0.486%.
+* $log(density)$: keeping all other variables constant, a 1% increase in density increases crime rate by 0.269%.
+* $west$: keeping all other variables constant, being in west region decreases crime rate by 17.5%, which is practically significant. 
 
 # Discussion of Causality
 
