@@ -415,7 +415,7 @@ In Model 3, we are going to include more variables from the dataset to try to co
 
 As discussed in the EDA, every variable seems to be in an expected range except for the outlier \$2177.10 in $wageser$. 
 
-```{r}
+```{r out.width="49%", fig.align="center", fig.show="hold"}
 # Look into wageser with an unusual max of 2177.1
 boxplot(data$wageser)
 ```
@@ -434,7 +434,7 @@ Out of all the variables that aren't included in Model 1 or Model 2, we have dec
 4) $pctmin$ and $ymale$ to control for the demographic effect on crime rate 
 
 Now let's look the relationship between the selected variables and our dependent variable $log(crime)$
-```{r}
+```{r out.width="49%", fig.align="center", fig.show="hold"}
 scatterplotMatrix(~ log(crime) + wagecon + wagetuc + wagetrd + wagefir, data = data)
 scatterplotMatrix(~ log(crime) + wagemfg + wagefed + wagesta + wageloc, data = data)
 scatterplotMatrix(~ log(crime) + pctmin + ymale, data = data)
@@ -447,7 +447,7 @@ We notice that the distributions for the variables $wagecon$, $wagetrd$, $wagefi
 Although $ymale$ is also positively skewed and could benefit from a log transformation in terms of normality, it's hard to interpret the slope parameter of its log transformation. Hence, we decided to leave it as it is. 
 
 Let's double check the linearity of the relationship between our transformed variables and our dependent variable $log(crime)$
-```{r}
+```{r out.width="49%", fig.align="center", fig.show="hold"}
 scatterplotMatrix(~ log(crime) + log(wagecon) + log(wagetuc) + log(wagetrd) + log(wagefir), data = data)
 scatterplotMatrix(~ log(crime) + log(wagemfg) + log(wagefed) + log(wagesta) + log(wageloc), data = data)
 scatterplotMatrix(~ log(crime) + pctmin + ymale, data = data)
