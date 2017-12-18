@@ -441,7 +441,7 @@ Moreover, let's look at how $west$ and $central$ distribute in the sample
 ```{r}
 unique(cbind(data$west, data$central))
 ```
-Note that although we don't have any counties that are both in west and central, as expected, we see some counties that neither in west or central. In order to consider the effect on different regions, we will need to use both indicator variables in our model. 
+Note that although we don't have any counties that are both in west and central, as expected, we see some counties that are neither in west or central. In order to consider the effect on different regions, we will need to use both indicator variables in our model. 
 
 Out of all the variables that aren't included in Model 1 or Model 2, we have decided to include:
 1) $west$ & $central$, as indicator variables, to control for the regional effect on crime rate
