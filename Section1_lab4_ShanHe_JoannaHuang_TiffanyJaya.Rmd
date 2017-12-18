@@ -372,7 +372,7 @@ lapply(subset(data, select=c("probarr", "probconv", "probsen", "avgsen", "log.po
       function(var) cov(var, m1$residuals))
 ```
 
-5. The assumption of homoskedasticity is not met because the residuals appear to spread in a downward curvature in the scale-location plot, and the p-value is statistically significant in Breusch-pagan test.
+5. The assumption of homoskedasticity is met because even though the residuals appear to spread in a downward curvature in the scale-location plot and the p-value is statistically significant based on the Breusch-pagan test, the error variance is constant because the p-value is not statistically significant in Score-test. Also, we can use the heteroscedasticity-robust standard errors for the hypothesis tests on the slope parameters.
 
 ```{r out.width="49%", fig.align="center", fig.show="hold"}
 # plot scale-location plot
@@ -453,9 +453,9 @@ We didn't see any strong violation agaisnt the linearity of the relationships. H
 ```{r}
 m3 <- lm(log(crime) ~ probarr + probconv + probsen + avgsen + log(police) + 
          log(density) + log(tax) + mix + 
-         west + central + urban + 
-        log(wagecon) + log(wagetuc) + log(wagetrd) + log(wagefir) + 
-        log(wagemfg) + log(wagefed) + log(wagesta) + log(wageloc) + ymale, data=data)
+         west + central + urban + ymale + pctmin + 
+         log(wagecon) + log(wagetuc) + log(wagetrd) + log(wagefir) + 
+         log(wagemfg) + log(wagefed) + log(wagesta) + log(wageloc), data=data)
 ```
 
 ## CLM 1 - 6
@@ -480,7 +480,7 @@ lapply(subset(data, select=c("probarr", "probconv", "probsen", "avgsen", "log.po
       function(var) cov(var, m3$residuals))
 ```
 
-5. The assumption of homoskedasticity is not met because the residuals appear to spread in a crescendo then a decrescendo motion in the scale-location plot, and the p-value is statistically significant in Breusch-pagan test.
+5. The assumption of homoskedasticity is met because even though the residuals appear to spread in a crescendo then a decrescendo motion in the scale-location plot and the p-value is statistically significant based on the Breusch-pagan test, the error variance is constant because the p-value is not statistically significant in Score-test. Also, we can use the heteroscedasticity-robust standard errors for the hypothesis tests on the slope parameters.
 
 ```{r out.width="49%", fig.align="center", fig.show="hold"}
 # plot scale-location plot
@@ -512,8 +512,6 @@ qqline(rstud, col="red", lwd=2)
 
 # Summary of Models
 
-We use the heteroskedasticity-robust standard errors to perform t-tests on our estimated parameters:
-
 ```{r}
 # calculate the standard error of each model
 se.m1 <- sqrt(diag(vcovHC(m1)))
@@ -528,19 +526,13 @@ stargazer(m1, m2, m3, type="text", omit.stat=c("f", "ser"),
 What we have observed is as follows:
 
 1. $probconv$, $probsen$ and $log(police)$ come up as statistically significant in *Model 1*.
-2. 
 
-According to the hypothesis tests using the heteroskedasticity-robust standard errors, we can see that variables $probconv$, $probsen$, $west$, $central$ show strong statistical significance (p-value < 0.001), same with $log(density)$ (p-value < 0.01) and $log(police)$ (p-value < 0.05).
+2. What is notable to point out is that $probarr$ and $log(police)$ do not have negative coefficient. $log(police)$ makes sense because polices most likely occupy places with high activities of crime. As for the $probarr$, there might be underlying variables that are not yet considered in the model.
 
-Moreover, to interpret the estimed parameters for:
-1) $probconv$: keeping all other variables constant, a 0.1 increase in $probconv$ results in a 5.23% decrease in crime rate
-2) $probsen$: keeping all other variables constant, a 0.1 increase in $probsen$ results in a 14.56% decrease in crime rate
-3) $west$: keeping all other variables constant, being in west region decreases crime rate by 29.4%
-4) $central$: keeping all other variables constant, being in central region decreases crime rate by 51.5%
-5) $log(density)$: keeping all other variables constant, an 1% increase in density increases crime rate by 0.18%
-6) $log(police)$:  keeping all other variables constant, an 1% increase in police per captipa increases crime rate by 0.49%
+3. In *Model 2*, where direct and indirect variables to crime rate are added to the model, $probconv$ and $probsen$ remain statistically significant while $log(police)$ drops its statistically significance with the introduction of $log(density)$. What this tells us is that $police$ and $density$ are positively correlated. $density$ has an independent effect on $police$. Then a regreession that omits $density$ like in Model 1 will overstate the effect of $police$. What this also tells us is that there appears to be more crime in densely populated area because a 1% increase in people per square mile will reflect a 27.1% increase in crime rate. 
 
-And from this, $probconv$, $probsen$, $west$, $central$ show strong practical significance. 
+4. When we dumped all the covariates in, like in the case of *Model 3*, $probconv$, $probsen$, $log(density)$ and $log(police)$ remain statistically significant, but other variables such as percentage of minority $pctmin$ and $west$ become statistically significant at the 0.01 and 0.05 level respectively. 
+
 
 
 
